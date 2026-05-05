@@ -7,13 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        /* Gaya khusus untuk cetak */
         @media print { 
             .no-print { display: none !important; }
             #modalBigData { position: relative !important; display: block !important; padding: 0 !important; }
             body { background: white; }
         }
-        /* Animasi halus saat buka riwayat */
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -24,8 +22,8 @@
     <nav class="bg-blue-900 text-white p-4 shadow-xl sticky top-0 z-40 no-print">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="font-black text-xs tracking-tighter uppercase">Notice Manager</h1>
-                <p class="text-[7px] text-blue-300 font-bold uppercase">UPPD Tanah Bumbu</p>
+                <h1 class="font-black text-xs tracking-tighter uppercase">UPPD TANAH BUMBU</h1>
+                <p class="text-[7px] text-blue-300 font-bold uppercase">Notice Manager</p>
             </div>
             <div class="text-right">
                 <p class="text-[7px] uppercase text-blue-200">Sisa Stok</p>
@@ -35,15 +33,14 @@
     </nav>
 
     <div class="container mx-auto p-3 max-w-xl no-print">
-        <!-- Form Utama (Tampilan yang Bapak Suka) -->
+        <!-- Form Utama -->
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mb-6">
             <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
-                <span class="text-[9px] font-black uppercase tracking-widest">Input Laporan Harian</span>
+                <span class="text-[9px] font-black uppercase tracking-widest">Input SKPD Harian</span>
                 <button onclick="resetForm()" class="text-[9px] bg-white/20 px-4 py-1.5 rounded-full font-black uppercase">Reset</button>
             </div>
             
             <div class="p-5 space-y-4">
-                <!-- Dropdown Petugas -->
                 <div>
                     <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Pilih Petugas</label>
                     <select id="petugas" onchange="pilihPetugas()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 transition-all">
@@ -62,13 +59,12 @@
                     </select>
                 </div>
 
-                <!-- Kolom Lokasi (Muncul Otomatis) -->
                 <div>
                     <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Titik Layanan</label>
                     <input type="text" id="lokasi" readonly class="w-full p-4 bg-slate-100 border rounded-2xl font-bold text-sm text-slate-500" placeholder="...">
                 </div>
 
-                <!-- Area Angka (Hitam) -->
+                <!-- Area Angka -->
                 <div class="bg-slate-900 rounded-3xl p-5 text-white">
                     <div class="grid grid-cols-2 gap-4 mb-5">
                         <div>
@@ -99,7 +95,7 @@
             </div>
         </div>
 
-        <!-- Bagian Riwayat & Tombol Rekap (Pemicu Modal) -->
+        <!-- Riwayat -->
         <div class="flex justify-between items-center px-2 mb-4">
             <h2 class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Riwayat Entri</h2>
             <button onclick="bukaBigData()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-900/20">Rekap Big Data</button>
@@ -110,7 +106,7 @@
         </div>
     </div>
 
-    <!-- MODAL BIG DATA (Full Screen di HP) -->
+    <!-- MODAL BIG DATA -->
     <div id="modalBigData" class="hidden fixed inset-0 z-[100] bg-white overflow-y-auto">
         <div class="p-4 sm:p-8 max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
@@ -132,8 +128,9 @@
                     <table class="w-full border-collapse border border-slate-300 text-[10px]">
                         <thead>
                             <tr class="bg-slate-100 uppercase">
-                                <th class="border border-slate-300 p-2">Tgl</th>
-                                <th class="border border-slate-300 p-2">No. Notice</th>
+                                <th class="border border-slate-300 p-2">Tanggal</th>
+                                <th class="border border-slate-300 p-2">Seri Awal</th>
+                                <th class="border border-slate-300 p-2">Seri Akhir</th>
                                 <th class="border border-slate-300 p-2">Pakai</th>
                                 <th class="border border-slate-300 p-2">Rusak</th>
                                 <th class="border border-slate-300 p-2">Keterangan</th>
@@ -142,14 +139,10 @@
                         <tbody id="tabel_big_data_body" class="text-center italic"></tbody>
                         <tfoot class="font-black bg-slate-50">
                             <tr>
-                                <td colspan="2" class="border border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
+                                <td colspan="3" class="border border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
                                 <td id="foot_pakai" class="border border-slate-300 p-2 text-green-700 font-bold text-xs">0</td>
                                 <td id="foot_rusak" class="border border-slate-300 p-2 text-red-700 font-bold text-xs">0</td>
                                 <td class="border border-slate-300 p-2"></td>
-                            </tr>
-                            <tr class="bg-blue-50">
-                                <td colspan="2" class="border border-slate-300 p-2 text-right uppercase">Total Bulan Lalu :</td>
-                                <td id="foot_lalu" colspan="3" class="border border-slate-300 p-2 text-left font-bold text-xs text-blue-900">0 Lembar</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -168,7 +161,6 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZWhoa3pxdGt4bmpsaGt0bHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTk0NDcsImV4cCI6MjA5MzEzNTQ0N30.hYNyrCEHMCCEmWFlisCVnqrUhgZGQsKBbzVMQtILMS4';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Inisialisasi
         const hariIni = new Date();
         document.getElementById('filter_bulan').value = `${hariIni.getFullYear()}-${String(hariIni.getMonth() + 1).padStart(2, '0')}`;
         document.getElementById('tgl_skrg').innerText = hariIni.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
@@ -203,7 +195,7 @@
                 container.innerHTML += `
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center fade-in">
                         <div>
-                            <p class="text-[11px] font-black text-slate-700 tracking-tighter">${item.nomor_awal} - ${item.nomor_akhir}</p>
+                            <p class="text-[11px] font-black text-slate-700 tracking-tighter">${item.nomor_seri_awal || item.nomor_awal} - ${item.nomor_seri_akhir || item.nomor_akhir}</p>
                             <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">P: ${item.total_terpakai} | R: ${item.total_rusak}</p>
                         </div>
                         <button onclick='isiEdit(${JSON.stringify(item)})' class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Edit</button>
@@ -214,7 +206,7 @@
         function bukaBigData() {
             if(!document.getElementById('petugas').value) return alert("Pilih Petugas!");
             document.getElementById('modalBigData').classList.remove('hidden');
-            document.body.style.overflow = "hidden"; // Kunci scroll layar utama
+            document.body.style.overflow = "hidden";
             prosesBigData();
         }
 
@@ -235,29 +227,30 @@
 
             const { data } = await _supabase.from('rekap_notice').select('*').eq('petugas_nama', petVal[0]).order('created_at', { ascending: true });
 
-            let html = "", tPakai = 0, tRusak = 0, tLalu = 0;
+            let html = "", tPakai = 0, tRusak = 0;
             data?.forEach(r => {
                 const d = new Date(r.created_at);
                 if(d.getMonth() === fBln && d.getFullYear() === fThn) {
                     tPakai += parseInt(r.total_terpakai);
                     tRusak += parseInt(r.total_rusak);
+                    
+                    // Format tanggal dd-mm-yyyy
+                    const tglFormat = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+                    
                     html += `<tr>
-                        <td class="border border-slate-300 p-2">${d.getDate()}/${d.getMonth()+1}</td>
-                        <td class="border border-slate-300 p-2 font-mono">${r.nomor_awal}-${r.nomor_akhir}</td>
+                        <td class="border border-slate-300 p-2 font-bold">${tglFormat}</td>
+                        <td class="border border-slate-300 p-2 font-mono text-blue-600">${r.nomor_seri_awal || r.nomor_awal || '-'}</td>
+                        <td class="border border-slate-300 p-2 font-mono text-blue-600">${r.nomor_seri_akhir || r.nomor_akhir || '-'}</td>
                         <td class="border border-slate-300 p-2 font-bold text-green-700">${r.total_terpakai}</td>
                         <td class="border border-slate-300 p-2 font-bold text-red-700">${r.total_rusak}</td>
                         <td class="border border-slate-300 p-2 text-[8px] leading-tight">${r.keterangan_rusak || '-'}</td>
                     </tr>`;
                 }
-                const bL = fBln === 0 ? 11 : fBln - 1;
-                const tL = fBln === 0 ? fThn - 1 : fThn;
-                if(d.getMonth() === bL && d.getFullYear() === tL) tLalu += parseInt(r.total_terpakai);
             });
 
-            document.getElementById('tabel_big_data_body').innerHTML = html || '<tr><td colspan="5" class="p-10 text-slate-300 italic uppercase font-bold">Tidak ada data</td></tr>';
+            document.getElementById('tabel_big_data_body').innerHTML = html || '<tr><td colspan="6" class="p-10 text-slate-300 italic uppercase font-bold">Tidak ada data</td></tr>';
             document.getElementById('foot_pakai').innerText = tPakai;
             document.getElementById('foot_rusak').innerText = tRusak;
-            document.getElementById('foot_lalu').innerText = tLalu + " Lembar";
         }
 
         async function simpanLaporan() {
@@ -265,14 +258,20 @@
             if(!pet) return alert("Pilih Petugas!");
             const info = pet.split('|');
             const editId = document.getElementById('edit_id').value;
+            
+            // Payload disesuaikan dengan kolom baru di Supabase
             const payload = {
-                petugas_nama: info[0], unit_kerja: info[1], lokasi_layanan: info[2],
-                nomor_awal: document.getElementById('no_awal').value,
-                nomor_akhir: document.getElementById('no_akhir').value,
-                total_terpakai: hitung(),
-                total_rusak: parseInt(document.getElementById('total_rusak').value) || 0,
-                keterangan_rusak: document.getElementById('ket_rusak').value
-            };
+    petugas_nama: info[0], 
+    unit_kerja: info[1], 
+    lokasi_layanan: info[2],
+    // Pakai nama kolom yang sudah ada di database Bapak (misal: nomor_awal)
+    nomor_awal: document.getElementById('no_awal').value,
+    nomor_akhir: document.getElementById('no_akhir').value,
+    total_terpakai: hitung(),
+    total_rusak: parseInt(document.getElementById('total_rusak').value) || 0,
+    keterangan_rusak: document.getElementById('ket_rusak').value
+};
+
             const res = editId ? await _supabase.from('rekap_notice').update(payload).eq('id', editId) : await _supabase.from('rekap_notice').insert([payload]);
             if(res.error) alert(res.error.message);
             else { alert("Laporan Berhasil!"); resetForm(); muatRiwayat(info[0]); }
@@ -281,8 +280,8 @@
         function isiEdit(item) {
             window.scrollTo({top:0, behavior:'smooth'});
             document.getElementById('edit_id').value = item.id;
-            document.getElementById('no_awal').value = item.nomor_awal;
-            document.getElementById('no_akhir').value = item.nomor_akhir;
+            document.getElementById('no_awal').value = item.nomor_seri_awal || item.nomor_awal;
+            document.getElementById('no_akhir').value = item.nomor_seri_akhir || item.nomor_akhir;
             document.getElementById('total_rusak').value = item.total_rusak;
             document.getElementById('ket_rusak').value = item.keterangan_rusak || "";
             document.getElementById('btnSimpan').innerText = "Update Data";
