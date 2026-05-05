@@ -7,14 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Library Cetak PDF Formal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
-    <!-- Header Admin -->
+    <!-- Header -->
     <header class="bg-slate-800 border-b border-slate-700 p-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight text-white">DASHBOARD EKSEKUTIF</h1>
+                <h1 class="text-xl font-black tracking-tight text-white uppercase">Dashboard Eksekutif</h1>
                 <p class="text-xs text-blue-400 font-bold uppercase tracking-widest">Monitoring Notice Real-Time • UPPD Tanah Bumbu</p>
             </div>
             <div id="status_koneksi" class="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
@@ -28,56 +31,73 @@
         
         <!-- ROW 1: KPI CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Kumulatif Hari Ini -->
             <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
                 <p class="text-xs font-bold text-slate-400 uppercase mb-2">Notice Keluar Hari Ini</p>
                 <div class="flex justify-between items-end">
                     <h2 id="total_hari_ini" class="text-5xl font-black text-white">0</h2>
-                    <span class="text-xs font-bold text-blue-400 pb-2">Lembar</span>
-                </div>
-                <div class="mt-4 h-1 bg-slate-700 rounded-full overflow-hidden">
-                    <div id="progress_harian" class="h-full bg-blue-500 transition-all duration-1000" style="width: 0%"></div>
+                    <span class="text-xs font-bold text-blue-400 pb-2 text-right">Lembar</span>
                 </div>
             </div>
 
-            <!-- Status Stok -->
-            <div id="card_stok" class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl transition-colors duration-500">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Sisa Stok (Gudang)</p>
+            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl border-t-4 border-t-emerald-500">
+                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Terpakai (Filter)</p>
                 <div class="flex justify-between items-end">
-                    <h2 id="sisa_stok" class="text-5xl font-black text-yellow-400">0</h2>
-                    <span id="label_stok" class="text-[10px] font-bold text-slate-400 pb-2 uppercase text-right">Status: Aman</span>
+                    <h2 id="total_filter" class="text-5xl font-black text-emerald-400">0</h2>
+                    <span class="text-[9px] font-bold text-slate-400 pb-2 uppercase text-right leading-tight" id="label_filter_kpi">-</span>
                 </div>
-                <p id="alert_pesan" class="text-[10px] mt-4 font-bold text-slate-500 italic uppercase">Pesanan baru belum diperlukan</p>
             </div>
 
-            <!-- Total Rusak -->
             <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Rusak (Bulan Ini)</p>
+                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Rusak (Filter)</p>
                 <div class="flex justify-between items-end">
-                    <h2 id="total_rusak" class="text-5xl font-black text-red-500">0</h2>
-                    <span class="text-xs font-bold text-slate-400 pb-2">Lembar</span>
+                    <h2 id="total_rusak_filter" class="text-5xl font-black text-red-500">0</h2>
+                    <span class="text-xs font-bold text-slate-400 pb-2 uppercase">Lembar</span>
                 </div>
-                <p class="text-[10px] mt-4 text-slate-500 uppercase font-bold">Rasio Kerusakan: <span id="rasio_rusak" class="text-white">0%</span></p>
             </div>
         </div>
 
-        <!-- ROW 2: VISUALISASI -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Performa Petugas -->
-            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">Peringkat Produktivitas Petugas</h3>
-                <div id="petugas_list" class="space-y-4">
-                    <!-- Dinamis loading dari JS -->
+        <!-- ROW 2: DETAIL REKAPITULASI -->
+        <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
+            <div class="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Rekapitulasi Produksi Per Petugas</h3>
+                    <p class="text-[9px] text-blue-400 font-bold uppercase mt-1">Laporan Berdasarkan Filter Tanggal Spesifik</p>
+                </div>
+                
+                <!-- FILTER TANGGAL (UPDATE: FULL DATE) -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="date" id="filter_tanggal" onchange="updateDashboard()" class="bg-slate-900 border border-slate-700 text-[10px] font-bold uppercase text-white px-3 py-2 rounded-xl outline-none focus:border-blue-500">
+                    
+                    <button onclick="exportLaporanPDF()" class="bg-slate-700 hover:bg-slate-600 text-white p-2.5 rounded-xl transition-all flex items-center gap-2" title="Cetak PDF Formal">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="text-[10px] font-bold uppercase">Cetak PDF</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Sebaran Layanan (Chart) -->
-            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">Sebaran Penggunaan Per Titik Layanan</h3>
-                <div class="h-64 flex items-center justify-center">
-                    <canvas id="chartLayanan"></canvas>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                        <tr>
+                            <th class="p-5">Nama Petugas / Unit</th>
+                            <th class="p-5 text-center">Terpakai</th>
+                            <th class="p-5 text-center">Rusak</th>
+                            <th class="p-5 text-center">Total Produksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel_rekap_petugas" class="text-sm border-t border-slate-700">
+                        <!-- Dinamis JS -->
+                    </tbody>
+                </table>
             </div>
+        </div>
+
+        <!-- ROW 3: VISUALISASI -->
+        <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl h-80">
+            <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest text-center">Proporsi Penggunaan Per Layanan</h3>
+            <canvas id="chartLayanan"></canvas>
         </div>
     </main>
 
@@ -87,114 +107,156 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let myChart;
+        let dataRekapGlobal = []; // Untuk simpan data saat cetak PDF
+
+        // Set default ke Tanggal Hari Ini
+        const hariIniISO = new Date().toISOString().split('T')[0];
+        document.getElementById('filter_tanggal').value = hariIniISO;
 
         async function updateDashboard() {
-            // 1. Ambil Data Laporan
-            const { data: lp } = await _supabase.from('rekap_notice').select('*');
-            const { data: st } = await _supabase.from('stok_notice').select('stok_awal').single();
+            const tglPilihan = document.getElementById('filter_tanggal').value;
             
-            const stokAwal = st?.stok_awal || 1000;
-            const hariIni = new Date().toISOString().split('T')[0];
+            // Label Formal
+            const opsiTgl = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('label_filter_kpi').innerText = new Date(tglPilihan).toLocaleDateString('id-ID', opsiTgl);
+
+            const { data: lp } = await _supabase.from('rekap_notice').select('*');
             
             let totalHariIni = 0;
-            let totalRusak = 0;
-            let totalDigunakan = 0;
-            const performa = {};
+            let totalFilter = 0;
+            let totalRusakFilter = 0;
+            const rekapPetugas = {};
             const sebaran = {};
 
             lp?.forEach(row => {
-                const pake = row.total_terpakai || 0;
-                const rsk = row.total_rusak || 0;
-                totalDigunakan += (pake + rsk);
-                totalRusak += rsk;
+                const pake = parseInt(row.total_terpakai) || 0;
+                const rsk = parseInt(row.total_rusak) || 0;
+                const tglData = row.created_at.split('T')[0];
 
-                // Hitung Harian
-                if(row.created_at.startsWith(hariIni)) {
+                // 1. Hitung Akumulasi Hari Ini (Real-time)
+                if(tglData === hariIniISO) {
                     totalHariIni += pake;
                 }
 
-                // Hitung Performa Petugas
-                performa[row.petugas_nama] = (performa[row.petugas_nama] || 0) + pake;
+                // 2. Hitung Berdasarkan Filter Pilihan
+                if(tglData === tglPilihan) {
+                    totalFilter += pake;
+                    totalRusakFilter += rsk;
 
-                // Hitung Sebaran Layanan
-                sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
+                    if(!rekapPetugas[row.petugas_nama]) {
+                        rekapPetugas[row.petugas_nama] = { unit: row.unit_kerja, pakai: 0, rusak: 0 };
+                    }
+                    rekapPetugas[row.petugas_nama].pakai += pake;
+                    rekapPetugas[row.petugas_nama].rusak += rsk;
+
+                    sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
+                }
             });
 
-            // UPDATE UI KPI
+            // Update UI
             document.getElementById('total_hari_ini').innerText = totalHariIni;
-            document.getElementById('total_rusak').innerText = totalRusak;
-            
-            const sisa = stokAwal - totalDigunakan;
-            document.getElementById('sisa_stok').innerText = sisa;
-            document.getElementById('rasio_rusak').innerText = ((totalRusak/stokAwal)*100).toFixed(1) + "%";
-            
-            // LOGIKA ALERT STOK
-            const cardStok = document.getElementById('card_stok');
-            const labelStok = document.getElementById('label_stok');
-            const alertPesan = document.getElementById('alert_pesan');
-            
-            if(sisa < 200) {
-                cardStok.classList.replace('bg-slate-800', 'bg-red-950');
-                labelStok.innerText = "Status: KRITIS!";
-                labelStok.classList.replace('text-slate-400', 'text-red-400');
-                alertPesan.innerText = "⚠️ SEGERA PESAN NOTICE BARU!";
-                alertPesan.classList.replace('text-slate-500', 'text-red-400');
-            }
+            document.getElementById('total_filter').innerText = totalFilter;
+            document.getElementById('total_rusak_filter').innerText = totalRusakFilter;
 
-            // UPDATE PERFORMA PETUGAS
-            const pList = document.getElementById('petugas_list');
-            pList.innerHTML = "";
-            Object.entries(performa).sort((a,b) => b[1] - a[1]).forEach(([nama, qty]) => {
-                const persen = (qty / totalDigunakan * 100).toFixed(0);
-                pList.innerHTML += `
-                    <div>
-                        <div class="flex justify-between text-[10px] mb-1 uppercase font-bold text-slate-400">
-                            <span>${nama}</span>
-                            <span>${qty} Lbr</span>
-                        </div>
-                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-500" style="width: ${persen}%"></div>
-                        </div>
-                    </div>
+            const tbody = document.getElementById('tabel_rekap_petugas');
+            tbody.innerHTML = "";
+            dataRekapGlobal = []; // reset data rekap untuk PDF
+
+            Object.entries(rekapPetugas).forEach(([nama, info]) => {
+                dataRekapGlobal.push([nama, info.unit, info.pakai, info.rusak, info.pakai + info.rusak]);
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                        <td class="p-5 font-bold">
+                            <span class="text-white">${nama}</span><br>
+                            <span class="text-[9px] text-slate-500 uppercase tracking-tighter">${info.unit}</span>
+                        </td>
+                        <td class="p-5 text-center font-black text-emerald-400">${info.pakai}</td>
+                        <td class="p-5 text-center font-black text-red-500">${info.rusak}</td>
+                        <td class="p-5 text-center font-black text-blue-400">${info.pakai + info.rusak}</td>
+                    </tr>
                 `;
             });
 
-            // UPDATE CHART (SEBARAN LAYANAN)
+            if(dataRekapGlobal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-slate-500 italic uppercase text-[10px] font-bold">Data tidak ditemukan pada tanggal ini</td></tr>`;
+            }
+
             updateChart(sebaran);
+        }
+
+        // FUNGSI EXPORT PDF FORMAL (BUKAN CROP)
+        function exportLaporanPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const tgl = document.getElementById('label_filter_kpi').innerText;
+
+            // Header Laporan Formal
+            doc.setFontSize(16);
+            doc.text("LAPORAN MONITORING PENGGUNAAN NOTICE", 105, 20, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text("UPPD TANAH BUMBU - UNIT ESAMSAT & SIGNAL", 105, 27, { align: 'center' });
+            doc.line(20, 32, 190, 32); // Garis pembatas
+
+            doc.setFontSize(11);
+            doc.text(`Periode Laporan : ${tgl}`, 20, 42);
+            doc.text(`Total Terpakai     : ${document.getElementById('total_filter').innerText} Lembar`, 20, 48);
+            doc.text(`Total Rusak         : ${document.getElementById('total_rusak_filter').innerText} Lembar`, 20, 54);
+
+            // Tabel Data menggunakan autoTable (Hasil rapi, bukan gambar)
+            doc.autoTable({
+                startY: 65,
+                head: [['NAMA PETUGAS', 'UNIT KERJA', 'TERPAKAI', 'RUSAK', 'TOTAL']],
+                body: dataRekapGlobal,
+                theme: 'striped',
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    2: { halign: 'center' },
+                    3: { halign: 'center' },
+                    4: { halign: 'center', fontStyle: 'bold' }
+                }
+            });
+
+            // Footer Tanda Tangan
+            const finalY = doc.lastAutoTable.finalY + 20;
+            doc.text("Dicetak otomatis melalui Executive Dashboard", 20, finalY);
+            doc.text(`Waktu Cetak: ${new Date().toLocaleString('id-ID')}`, 20, finalY + 6);
+
+            doc.save(`Laporan_Samsat_Tanbu_${document.getElementById('filter_tanggal').value}.pdf`);
         }
 
         function updateChart(sebaran) {
             const ctx = document.getElementById('chartLayanan').getContext('2d');
-            const labels = Object.keys(sebaran);
-            const values = Object.values(sebaran);
-
             if (myChart) myChart.destroy();
-            
             myChart = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: Object.keys(sebaran),
                     datasets: [{
-                        data: values,
-                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 0,
-                        hoverOffset: 20
+                        label: 'Penggunaan Notice',
+                        data: Object.values(sebaran),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10, weight: 'bold' }, usePointStyle: true } }
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } }
                     }
                 }
             });
         }
 
-        // Jalankan Update
+        // Listener Otomatis
+        _supabase.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'rekap_notice' }, () => {
+            updateDashboard();
+        }).subscribe();
+
         updateDashboard();
-        // Auto Refresh tiap 30 detik
-        setInterval(updateDashboard, 30000);
     </script>
 </body>
 </html>
