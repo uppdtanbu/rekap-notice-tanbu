@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Samsat Tanbu - Database Notice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @media print { 
+            .no-print { display: none !important; }
+            #modalBigData { position: relative !important; display: block !important; padding: 0 !important; }
+            body { background: white; }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-900 pb-10">
+
+    <!-- Header Atas -->
+    <nav class="bg-blue-900 text-white p-4 shadow-xl sticky top-0 z-40 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="font-black text-xs tracking-tighter uppercase">UPPD TANAH BUMBU</h1>
+                <p class="text-[7px] text-blue-300 font-bold uppercase">Notice Manager</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[7px] uppercase text-blue-200">Sisa Stok</p>
+                <p id="sisa_stok_global" class="text-lg font-black text-yellow-400 leading-none">1000</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-3 max-w-xl no-print">
+        <!-- Form Utama -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mb-6">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+                <span class="text-[9px] font-black uppercase tracking-widest">Input SKPD Harian</span>
+                <button onclick="resetForm()" class="text-[9px] bg-white/20 px-4 py-1.5 rounded-full font-black uppercase">Reset</button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Pilih Petugas</label>
+                    <select id="petugas" onchange="pilihPetugas()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 transition-all">
+                        <option value="">-- Nama Petugas --</option>
+                        <option value="Niana Safitri|SKPD Baru|Notice Baru">Niana Safitri - SKPD Baru</option>
+                        <option value="Ein Husnul Khotimah, S.Kom|SKPD Reguler (Induk)|1 Thn & 5 Thn">Ein Husnul Khotimah, S.Kom</option>
+                        <option value="Bambang Pujo HS, S.Kom|Esamsat Dan Signal|Layanan Signal/Esamsat">Bambang Pujo HS, S.Kom</option>
+                        <option value="M. Noor|Layanan Online|Online">M. Noor - Layanan Online</option>
+                        <option value="M. Ridani, S.E|Samsat Keliling 1|Samkel 1">M. Ridani, S.E - Samkel 1</option>
+                        <option value="Hermawan|Samsat Keliling 1|Samkel 1">Hermawan - Samkel 1</option>
+                        <option value="M. Ali|Samsat Keliling 2|Samkel 2">M. Ali - Samkel 2</option>
+                        <option value="M. Rama Ali|Samsat Keliling 2|Samkel 2">M. Rama Ali - Samkel 2</option>
+                        <option value="G. Shandi|Samsat Keliling Malam|Salam">G. Shandi - Samkel Malam</option>
+                        <option value="Dinar Djati Ap|Samsat Keliling Malam|Salam">Dinar Djati Ap - Samkel Malam</option>
+                        <option value="Expo|Expo|Layanan Expo">Expo - Expo</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Titik Layanan</label>
+                    <input type="text" id="lokasi" readonly class="w-full p-4 bg-slate-100 border rounded-2xl font-bold text-sm text-slate-500" placeholder="...">
+                </div>
+
+                <!-- Area Angka -->
+                <div class="bg-slate-900 rounded-3xl p-5 text-white">
+                    <div class="grid grid-cols-2 gap-4 mb-5">
+                        <div>
+                            <label class="block text-[8px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Awal</label>
+                            <input type="number" id="no_awal" oninput="hitung()" class="w-full p-3 bg-slate-800 rounded-xl font-mono text-xl text-center outline-none border border-slate-700 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-[8px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Akhir</label>
+                            <input type="number" id="no_akhir" oninput="hitung()" class="w-full p-3 bg-slate-800 rounded-xl font-mono text-xl text-center outline-none border border-slate-700 focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 bg-slate-800/40 p-4 rounded-2xl border border-slate-700">
+                        <div class="flex-1">
+                            <p class="text-[8px] font-black text-slate-500 uppercase">Terpakai</p>
+                            <p id="label_terhitung" class="text-3xl font-black text-green-400">0</p>
+                        </div>
+                        <div class="w-24 text-right">
+                            <p class="text-[8px] font-black text-red-500 uppercase mb-1">Rusak</p>
+                            <input type="number" id="total_rusak" value="0" oninput="hitung()" class="w-full p-2 bg-red-900/20 border border-red-900/50 rounded-lg text-center font-black text-red-400 outline-none">
+                        </div>
+                    </div>
+                    <textarea id="ket_rusak" placeholder="Keterangan notice rusak..." class="w-full mt-4 p-3 bg-slate-800 rounded-xl text-[10px] text-yellow-500 outline-none h-16 border border-slate-700"></textarea>
+                </div>
+
+                <input type="hidden" id="edit_id">
+                <button onclick="simpanLaporan()" id="btnSimpan" class="w-full bg-blue-900 text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-lg shadow-blue-900/20 active:scale-95 transition-all text-sm">Simpan Laporan</button>
+            </div>
+        </div>
+
+        <!-- Riwayat -->
+        <div class="flex justify-between items-center px-2 mb-4">
+            <h2 class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Riwayat Entri</h2>
+            <button onclick="bukaBigData()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-900/20">Rekap Big Data</button>
+        </div>
+        
+        <div id="history_container" class="space-y-3">
+            <p class="text-center text-[10px] text-slate-400 py-10 font-bold uppercase tracking-widest italic">Pilih petugas untuk melihat riwayat</p>
+        </div>
+    </div>
+
+    <!-- MODAL BIG DATA -->
+    <div id="modalBigData" class="hidden fixed inset-0 z-[100] bg-white overflow-y-auto">
+        <div class="p-4 sm:p-8 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
+                <button onclick="tutupBigData()" class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">← Kembali</button>
+                <div class="flex gap-2">
+                    <input type="month" id="filter_bulan" onchange="prosesBigData()" class="border p-2 rounded-lg text-[10px] font-bold">
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase">Cetak</button>
+                </div>
+            </div>
+
+            <div id="area_laporan_bulanan">
+                <div class="text-center mb-6 border-b-2 border-slate-900 pb-4">
+                    <h2 class="font-black text-lg uppercase leading-tight">Rekapitulasi Laporan SKPD</h2>
+                    <p id="judul_petugas" class="font-bold text-[11px] uppercase mt-1 text-blue-900"></p>
+                    <p id="judul_bulan" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"></p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-slate-300 text-[10px]">
+                        <thead>
+                            <tr class="bg-slate-100 uppercase">
+                                <th class="border border-slate-300 p-2">Tanggal</th>
+                                <th class="border border-slate-300 p-2">Seri Awal</th>
+                                <th class="border border-slate-300 p-2">Seri Akhir</th>
+                                <th class="border border-slate-300 p-2">Pakai</th>
+                                <th class="border border-slate-300 p-2">Rusak</th>
+                                <th class="border border-slate-300 p-2">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel_big_data_body" class="text-center italic"></tbody>
+                        <tfoot class="font-black bg-slate-50">
+                            <tr>
+                                <td colspan="3" class="border border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
+                                <td id="foot_pakai" class="border border-slate-300 p-2 text-green-700 font-bold text-xs">0</td>
+                                <td id="foot_rusak" class="border border-slate-300 p-2 text-red-700 font-bold text-xs">0</td>
+                                <td class="border border-slate-300 p-2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-10 flex justify-between text-center text-[10px] font-bold uppercase px-4">
+                    <div class="w-32">Mengetahui,<br>Pimpinan<br><br><br><br>( ................. )</div>
+                    <div class="w-32">Tanah Bumbu, <span id="tgl_skrg"></span><br>Petugas Pelapor<br><br><br><br>( <span id="nama_ttd"></span> )</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://qqehhkzqtkxnjlhktlqw.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZWhoa3pxdGt4bmpsaGt0bHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTk0NDcsImV4cCI6MjA5MzEzNTQ0N30.hYNyrCEHMCCEmWFlisCVnqrUhgZGQsKBbzVMQtILMS4';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const hariIni = new Date();
+        document.getElementById('filter_bulan').value = `${hariIni.getFullYear()}-${String(hariIni.getMonth() + 1).padStart(2, '0')}`;
+        document.getElementById('tgl_skrg').innerText = hariIni.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+
+        function hitung() {
+            const awal = parseInt(document.getElementById('no_awal').value) || 0;
+            const akhir = parseInt(document.getElementById('no_akhir').value) || 0;
+            const rusak = parseInt(document.getElementById('total_rusak').value) || 0;
+            let hasil = (akhir >= awal && awal > 0) ? (akhir - awal + 1) - rusak : 0;
+            document.getElementById('label_terhitung').innerText = hasil;
+            return hasil;
+        }
+
+        async function pilihPetugas() {
+            const val = document.getElementById('petugas').value;
+            if(!val) { document.getElementById('lokasi').value = ""; return; }
+            const info = val.split('|');
+            document.getElementById('lokasi').value = info[2];
+            muatRiwayat(info[0]);
+        }
+
+        async function muatRiwayat(nama) {
+            const { data } = await _supabase.from('rekap_notice').select('*').eq('petugas_nama', nama).order('created_at', { ascending: false });
+            
+            let tTotal = 0;
+            data?.forEach(r => tTotal += (parseInt(r.total_terpakai) + parseInt(r.total_rusak)));
+            document.getElementById('sisa_stok_global').innerText = 1000 - tTotal;
+
+            const container = document.getElementById('history_container');
+            container.innerHTML = "";
+            data?.slice(0, 5).forEach(item => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center fade-in">
+                        <div>
+                            <p class="text-[11px] font-black text-slate-700 tracking-tighter">${item.nomor_seri_awal || item.nomor_awal} - ${item.nomor_seri_akhir || item.nomor_akhir}</p>
+                            <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">P: ${item.total_terpakai} | R: ${item.total_rusak}</p>
+                        </div>
+                        <button onclick='isiEdit(${JSON.stringify(item)})' class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Edit</button>
+                    </div>`;
+            });
+        }
+
+        function bukaBigData() {
+            if(!document.getElementById('petugas').value) return alert("Pilih Petugas!");
+            document.getElementById('modalBigData').classList.remove('hidden');
+            document.body.style.overflow = "hidden";
+            prosesBigData();
+        }
+
+        function tutupBigData() { 
+            document.getElementById('modalBigData').classList.add('hidden'); 
+            document.body.style.overflow = "auto";
+        }
+
+        async function prosesBigData() {
+            const petVal = document.getElementById('petugas').value.split('|');
+            const filVal = document.getElementById('filter_bulan').value.split('-');
+            const fThn = parseInt(filVal[0]);
+            const fBln = parseInt(filVal[1]) - 1;
+
+            document.getElementById('judul_petugas').innerText = petVal[0] + " (" + petVal[1] + ")";
+            document.getElementById('nama_ttd').innerText = petVal[0];
+            document.getElementById('judul_bulan').innerText = new Date(fThn, fBln).toLocaleString('id-ID', {month:'long', year:'numeric'});
+
+            const { data } = await _supabase.from('rekap_notice').select('*').eq('petugas_nama', petVal[0]).order('created_at', { ascending: true });
+
+            let html = "", tPakai = 0, tRusak = 0;
+            data?.forEach(r => {
+                const d = new Date(r.created_at);
+                if(d.getMonth() === fBln && d.getFullYear() === fThn) {
+                    tPakai += parseInt(r.total_terpakai);
+                    tRusak += parseInt(r.total_rusak);
+                    
+                    // Format tanggal dd-mm-yyyy
+                    const tglFormat = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+                    
+                    html += `<tr>
+                        <td class="border border-slate-300 p-2 font-bold">${tglFormat}</td>
+                        <td class="border border-slate-300 p-2 font-mono text-blue-600">${r.nomor_seri_awal || r.nomor_awal || '-'}</td>
+                        <td class="border border-slate-300 p-2 font-mono text-blue-600">${r.nomor_seri_akhir || r.nomor_akhir || '-'}</td>
+                        <td class="border border-slate-300 p-2 font-bold text-green-700">${r.total_terpakai}</td>
+                        <td class="border border-slate-300 p-2 font-bold text-red-700">${r.total_rusak}</td>
+                        <td class="border border-slate-300 p-2 text-[8px] leading-tight">${r.keterangan_rusak || '-'}</td>
+                    </tr>`;
+                }
+            });
+
+            document.getElementById('tabel_big_data_body').innerHTML = html || '<tr><td colspan="6" class="p-10 text-slate-300 italic uppercase font-bold">Tidak ada data</td></tr>';
+            document.getElementById('foot_pakai').innerText = tPakai;
+            document.getElementById('foot_rusak').innerText = tRusak;
+        }
+
+        async function simpanLaporan() {
+            const pet = document.getElementById('petugas').value;
+            if(!pet) return alert("Pilih Petugas!");
+            const info = pet.split('|');
+            const editId = document.getElementById('edit_id').value;
+            
+            // Payload disesuaikan dengan kolom baru di Supabase
+            const payload = {
+    petugas_nama: info[0], 
+    unit_kerja: info[1], 
+    lokasi_layanan: info[2],
+    // Pakai nama kolom yang sudah ada di database Bapak (misal: nomor_awal)
+    nomor_awal: document.getElementById('no_awal').value,
+    nomor_akhir: document.getElementById('no_akhir').value,
+    total_terpakai: hitung(),
+    total_rusak: parseInt(document.getElementById('total_rusak').value) || 0,
+    keterangan_rusak: document.getElementById('ket_rusak').value
+};
+
+            const res = editId ? await _supabase.from('rekap_notice').update(payload).eq('id', editId) : await _supabase.from('rekap_notice').insert([payload]);
+            if(res.error) alert(res.error.message);
+            else { alert("Laporan Berhasil!"); resetForm(); muatRiwayat(info[0]); }
+        }
+
+        function isiEdit(item) {
+            window.scrollTo({top:0, behavior:'smooth'});
+            document.getElementById('edit_id').value = item.id;
+            document.getElementById('no_awal').value = item.nomor_seri_awal || item.nomor_awal;
+            document.getElementById('no_akhir').value = item.nomor_seri_akhir || item.nomor_akhir;
+            document.getElementById('total_rusak').value = item.total_rusak;
+            document.getElementById('ket_rusak').value = item.keterangan_rusak || "";
+            document.getElementById('btnSimpan').innerText = "Update Data";
+            hitung();
+        }
+
+        function resetForm() {
+            document.getElementById('edit_id').value = "";
+            document.getElementById('no_awal').value = "";
+            document.getElementById('no_akhir').value = "";
+            document.getElementById('total_rusak').value = "0";
+            document.getElementById('ket_rusak').value = "";
+            document.getElementById('btnSimpan').innerText = "Simpan Laporan";
+            hitung();
+        }
+    </script>
+</body>
+</html>
