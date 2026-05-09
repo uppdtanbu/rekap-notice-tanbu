@@ -109,8 +109,10 @@
         let myChart;
         let dataRekapGlobal = []; // Untuk simpan data saat cetak PDF
 
-        // Set default ke Tanggal Hari Ini
-        const hariIniISO = new Date().toISOString().split('T')[0];
+        // Set default ke Tanggal Hari Ini (WITA)
+        const d = new Date();
+        d.setHours(d.getHours() + 8); 
+        const hariIniISO = d.toISOString().split('T')[0];
         document.getElementById('filter_tanggal').value = hariIniISO;
 
         async function updateDashboard() {
@@ -143,14 +145,27 @@
                     totalFilter += pake;
                     totalRusakFilter += rsk;
 
+                    // BUAT/SIAPKAN WADAH DATA PETUGAS (Termasuk array Duplikat)
                     if(!rekapPetugas[row.petugas_nama]) {
-                        rekapPetugas[row.petugas_nama] = { unit: row.unit_kerja, pakai: 0, rusak: 0 };
+                        rekapPetugas[row.petugas_nama] = { 
+                            unit: row.unit_kerja, 
+                            pakai: 0, 
+                            rusak: 0,
+                            duplikat: [] // Menyiapkan tempat menampung nomor duplikat
+                        };
                     }
+                    
+                    // TAMBAHKAN ANGKA TERPAKAI & RUSAK
                     rekapPetugas[row.petugas_nama].pakai += pake;
                     rekapPetugas[row.petugas_nama].rusak += rsk;
 
+                    // TANGKAP NOMOR DUPLIKAT JIKA ADA
+                    if (row.nomor_duplikat && row.nomor_duplikat.trim() !== "") {
+                        rekapPetugas[row.petugas_nama].duplikat.push(row.nomor_duplikat);
+                    }
+
                     sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
-                }
+                }   
             });
 
             // Update UI
@@ -162,13 +177,27 @@
             tbody.innerHTML = "";
             dataRekapGlobal = []; // reset data rekap untuk PDF
 
+            // RENDER TABEL BERSAMAAN DENGAN DATA DUPLIKAT
             Object.entries(rekapPetugas).forEach(([nama, info]) => {
                 dataRekapGlobal.push([nama, info.unit, info.pakai, info.rusak, info.pakai + info.rusak]);
+                
+                // Cek apakah petugas ini punya catatan duplikat
+                let elemenDuplikat = "";
+                if (info.duplikat.length > 0) {
+                    elemenDuplikat = `
+                        <div class="mt-1.5 p-1.5 bg-yellow-900/20 border border-yellow-700/30 rounded-md w-max">
+                            <div class="text-[10px] font-black text-yellow-500 uppercase">Cetak Duplikat (${info.duplikat.length}):</div>
+                            <div class="text-[15px] text-yellow-100 font-mono mt-0.5 tracking-tight">${info.duplikat.join(', ')}</div>
+                        </div>
+                    `;
+                }
+
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                         <td class="p-5 font-bold">
                             <span class="text-white">${nama}</span><br>
                             <span class="text-[9px] text-slate-500 uppercase tracking-tighter">${info.unit}</span>
+                            ${elemenDuplikat} <!-- Label Duplikat Muncul Di Sini -->
                         </td>
                         <td class="p-5 text-center font-black text-emerald-400">${info.pakai}</td>
                         <td class="p-5 text-center font-black text-red-500">${info.rusak}</td>
