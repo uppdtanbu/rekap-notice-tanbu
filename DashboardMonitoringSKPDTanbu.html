@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Dashboard - UPPD Tanbu</title>
+    <title>Dashboard Monitoring Notice - UPPD Tanbu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -40,15 +40,15 @@
             </div>
 
             <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl border-t-4 border-t-emerald-500">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Terpakai (Filter)</p>
+                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Terpakai</p>
                 <div class="flex justify-between items-end">
                     <h2 id="total_filter" class="text-5xl font-black text-emerald-400">0</h2>
                     <span class="text-[9px] font-bold text-slate-400 pb-2 uppercase text-right leading-tight" id="label_filter_kpi">-</span>
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Rusak (Filter)</p>
+            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl border-t-4 border-t-red-500">
+                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Rusak</p>
                 <div class="flex justify-between items-end">
                     <h2 id="total_rusak_filter" class="text-5xl font-black text-red-500">0</h2>
                     <span class="text-xs font-bold text-slate-400 pb-2 uppercase">Lembar</span>
@@ -58,10 +58,10 @@
 
         <!-- ROW 2: DETAIL REKAPITULASI -->
         <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
-            <div class="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="p-3 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Rekapitulasi Produksi Per Petugas</h3>
-                    <p class="text-[9px] text-blue-400 font-bold uppercase mt-1">Laporan Berdasarkan Filter Tanggal</p>
+                    <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest">Produksi Per Petugas</h3>
+                    <p class="text-[8px] text-blue-400 font-bold uppercase mt-1">Laporan Berdasarkan Filter Tanggal</p>
                 </div>
                 
                 <!-- FILTER TANGGAL (UPDATE: FULL DATE) -->
@@ -186,8 +186,8 @@
                 if (info.duplikat.length > 0) {
                     elemenDuplikat = `
                         <div class="mt-1.5 p-1.5 bg-yellow-900/20 border border-yellow-700/30 rounded-md w-max">
-                            <div class="text-[10px] font-black text-yellow-500 uppercase">Cetak Duplikat (${info.duplikat.length}):</div>
-                            <div class="text-[15px] text-yellow-100 font-mono mt-0.5 tracking-tight">${info.duplikat.join(', ')}</div>
+                            <div class="text-[9px] font-black text-yellow-500 uppercase">Cetak Duplikat (${info.duplikat.length}):</div>
+                            <div class="text-[12px] text-yellow-100 font-mono mt-0.5 tracking-tight">${info.duplikat.join(', ')}</div>
                         </div>
                     `;
                 }
@@ -221,7 +221,7 @@
 
             // Header Laporan Formal
             doc.setFontSize(16);
-            doc.text("LAPORAN MONITORING PENGGUNAAN NOTICE", 105, 20, { align: 'center' });
+            doc.text("REKAPITULASI TOTAL PEMAKAIAN NOTICE", 105, 20, { align: 'center' });
             doc.setFontSize(10);
             doc.text("UPPD TANAH BUMBU", 105, 27, { align: 'center' });
             doc.line(20, 32, 190, 32); // Garis pembatas

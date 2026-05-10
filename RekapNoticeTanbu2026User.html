@@ -55,9 +55,10 @@
                         <option value="Muhammad Rama Ali|Samsat Keliling 2|SKPD Samsat Keliling 2">Muhammad Rama Ali</option>
                         <option value="Shandi Pratama|Samsat Keliling Malam|SKPD Samsat Keliling Malam">Shandi Pratama</option>
                         <option value="Dinar Djati Ap|Samsat Keliling Malam|SKPD Samsat Keliling Malam">Dinar Djati Ap</option>
+                        <option value="Mall Pelayanan Publik|MPP Tanbu|SKPD Mall Pelayanan Publik">Mall Pelayanan Publik</option>
                         <option value="Expo|Expo|Layanan Expo Tanbu">Expo</option>
                     </select>
-                </div>
+                </div>  
 
                 <div>
                     <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Titik Layanan</label>
@@ -68,30 +69,30 @@
                 <div class="bg-slate-900 rounded-3xl p-5 text-white">
                     <div class="grid grid-cols-2 gap-4 mb-5">
                         <div>
-                            <label class="block text-[8px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Awal</label>
+                            <label class="block text-[10px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Awal</label>
                             <input type="number" id="no_awal" oninput="hitung()" class="w-full p-3 bg-slate-800 rounded-xl font-mono text-xl text-center outline-none border border-slate-700 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-[8px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Akhir</label>
+                            <label class="block text-[10px] text-slate-500 uppercase mb-1 tracking-widest text-center">Seri Akhir</label>
                             <input type="number" id="no_akhir" oninput="hitung()" class="w-full p-3 bg-slate-800 rounded-xl font-mono text-xl text-center outline-none border border-slate-700 focus:border-blue-500">
                         </div>
                     </div>
 
                     <div class="flex items-center gap-4 bg-slate-800/40 p-4 rounded-2xl border border-slate-700">
                         <div class="flex-1">
-                            <p class="text-[8px] font-black text-slate-500 uppercase">Terpakai</p>
+                            <p class="text-[9px] font-black text-slate-500 uppercase">Terpakai</p>
                             <p id="label_terhitung" class="text-3xl font-black text-green-400">0</p>
                         </div>
                         <div class="w-24 text-right">
-                            <p class="text-[8px] font-black text-red-500 uppercase mb-1">Rusak</p>
+                            <p class="text-[9px] font-black text-red-500 uppercase mb-1">Rusak</p>
                             <input type="number" id="total_rusak" value="0" oninput="hitung()" class="w-full p-2 bg-red-900/20 border border-red-900/50 rounded-lg text-center font-black text-red-400 outline-none">
                         </div>
                     </div>
                     
-                    <textarea id="ket_rusak" placeholder="Keterangan notice rusak..." class="w-full mt-4 p-3 bg-slate-800 rounded-xl text-[13px] text-yellow-500 outline-none h-16 border border-slate-700"></textarea>
+                    <textarea id="ket_rusak" placeholder="Keterangan notice rusak..." class="w-full mt-4 p-3 bg-slate-800 rounded-xl text-[10px] text-yellow-500 outline-none h-16 border border-slate-700"></textarea>
                     
                     <!-- TAMBAHAN: Input untuk Nomor Duplikat -->
-                    <input type="text" id="nomor_duplikat" placeholder="Nomor duplikat (pisahkan dengan koma jika lebih dari satu)..." class="w-full mt-2 p-3 bg-slate-800 rounded-xl text-[13px] text-emerald-400 font-mono outline-none border border-slate-700">
+                    <input type="text" id="nomor_duplikat" placeholder="Nomor duplikat (pisahkan dengan koma jika lebih dari satu)..." class="w-full mt-2 p-3 bg-slate-800 rounded-xl text-[10px] text-emerald-400 outline-none border border-slate-700">
                 </div>
 
                 <input type="hidden" id="edit_id">
@@ -122,8 +123,8 @@
             </div>
 
             <div id="area_lapora    n_bulanan">
-                <div class="text-center mb-6 border-b-2 border-slate-900 pb-4">
-                    <h2 class="font-black text-lg uppercase leading-tight">Rekapitulasi Laporan SKPD</h2>
+                <div class="text mb-6 border-b-2 border-slate-900 pb-4">
+                    <h2 class="font-black text-lg uppercase leading-tight">Rekapitulasi SKPD UPPD Batulicin</h2>
                     <p id="judul_petugas" class="font-bold text-[11px] uppercase mt-1 text-blue-900"></p>
                     <p id="judul_bulan" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"></p>
                 </div>
@@ -153,8 +154,8 @@
                 </div>
 
                 <div class="mt-10 flex justify-between text-center text-[10px] font-bold uppercase px-4">
-                    <div class="w-32">Mengetahui,<br>Pimpinan<br><br><br><br>( ................. )</div>
-                    <div class="w-32">Tanah Bumbu, <span id="tgl_skrg"></span><br>Petugas Pelapor<br><br><br><br>( <span id="nama_ttd"></span> )</div>
+                    <div class="w-32">Mengetahui,<br>Kasi PKB & BBNKB<br><br><br><br>Adimas Fitriandi,ST,MT<br>Nip. ............</div>
+                    <div class="w-32">Batulicin, <span id="tgl_skrg"></span><br><br><br><br> <span id="nama_ttd"></span> </div>
                 </div>
             </div>
         </div>
