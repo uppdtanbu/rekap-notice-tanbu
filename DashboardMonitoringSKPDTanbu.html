@@ -249,8 +249,7 @@
 
             // Footer Tanda Tangan
             const finalY = doc.lastAutoTable.finalY + 20;
-            doc.text("Dicetak otomatis melalui Executive Dashboard", 20, finalY);
-            doc.text(`Waktu Cetak: ${new Date().toLocaleString('id-ID')}`, 20, finalY + 6);
+            
 
             doc.save(`Laporan_Samsat_Tanbu_${document.getElementById('filter_tanggal').value}.pdf`);
         }
