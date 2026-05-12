@@ -30,7 +30,7 @@
     <main class="container mx-auto p-6 space-y-6">
         
         <!-- ROW 1: KPI CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
                 <p class="text-xs font-bold text-slate-400 uppercase mb-2">Notice Keluar Hari Ini</p>
                 <div class="flex justify-between items-end">
@@ -44,6 +44,14 @@
                 <div class="flex justify-between items-end">
                     <h2 id="total_filter" class="text-5xl font-black text-emerald-400">0</h2>
                     <span class="text-[9px] font-bold text-slate-400 pb-2 uppercase text-right leading-tight" id="label_filter_kpi">-</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl border-t-4 border-t-yellow-500">
+                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Duplikat</p>
+                <div class="flex justify-between items-end">
+                    <h2 id="total_duplikat_filter" class="text-5xl font-black text-yellow-500">0</h2>
+                    <span class="text-xs font-bold text-slate-400 pb-2 uppercase">Lembar</span>
                 </div>
             </div>
 
@@ -64,7 +72,7 @@
                     <p class="text-[8px] text-blue-400 font-bold uppercase mt-1">Laporan Berdasarkan Filter Tanggal</p>
                 </div>
                 
-                <!-- FILTER TANGGAL (UPDATE: FULL DATE) -->
+                <!-- FILTER TANGGAL -->
                 <div class="flex flex-wrap items-center gap-2">
                     <input type="date" id="filter_tanggal" onchange="updateDashboard()" class="bg-slate-900 border border-slate-700 text-[10px] font-bold uppercase text-white px-3 py-2 rounded-xl outline-none focus:border-blue-500">
                     
@@ -83,6 +91,7 @@
                         <tr>
                             <th class="p-5">Nama Petugas / Unit</th>
                             <th class="p-5 text-center">Terpakai</th>
+                            <th class="p-5 text-center">Duplikat</th>
                             <th class="p-5 text-center">Rusak</th>
                             <th class="p-5 text-center">Total Produksi</th>
                         </tr>
@@ -126,6 +135,7 @@
             
             let totalHariIni = 0;
             let totalFilter = 0;
+            let totalDuplikatFilter = 0;
             let totalRusakFilter = 0;
             const rekapPetugas = {};
             const sebaran = {};
@@ -133,6 +143,7 @@
             lp?.forEach(row => {
                 const pake = parseInt(row.total_terpakai) || 0;
                 const rsk = parseInt(row.total_rusak) || 0;
+                const dup = parseInt(row.total_duplikat) || 0; // LOGIKA BARU: Ambil dari column database
                 const tglData = row.created_at.split('T')[0];
 
                 // 1. Hitung Akumulasi Hari Ini (Real-time)
@@ -144,25 +155,22 @@
                 if(tglData === tglPilihan) {
                     totalFilter += pake;
                     totalRusakFilter += rsk;
+                    totalDuplikatFilter += dup; // LOGIKA BARU: Tambahkan dari integer
 
-                    // BUAT/SIAPKAN WADAH DATA PETUGAS (Termasuk array Duplikat)
+                    // BUAT/SIAPKAN WADAH DATA PETUGAS
                     if(!rekapPetugas[row.petugas_nama]) {
                         rekapPetugas[row.petugas_nama] = { 
                             unit: row.unit_kerja, 
                             pakai: 0, 
                             rusak: 0,
-                            duplikat: [] // Menyiapkan tempat menampung nomor duplikat
+                            duplikat: 0 // LOGIKA BARU: Diubah jadi wadah angka 0, bukan array []
                         };
                     }
                     
-                    // TAMBAHKAN ANGKA TERPAKAI & RUSAK
+                    // TAMBAHKAN ANGKA TERPAKAI, RUSAK & DUPLIKAT
                     rekapPetugas[row.petugas_nama].pakai += pake;
                     rekapPetugas[row.petugas_nama].rusak += rsk;
-
-                    // TANGKAP NOMOR DUPLIKAT JIKA ADA
-                    if (row.nomor_duplikat && row.nomor_duplikat.trim() !== "") {
-                        rekapPetugas[row.petugas_nama].duplikat.push(row.nomor_duplikat);
-                    }
+                    rekapPetugas[row.petugas_nama].duplikat += dup; // LOGIKA BARU: Menambahkan nilai integer
 
                     sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
                 }   
@@ -171,49 +179,40 @@
             // Update UI
             document.getElementById('total_hari_ini').innerText = totalHariIni;
             document.getElementById('total_filter').innerText = totalFilter;
+            document.getElementById('total_duplikat_filter').innerText = totalDuplikatFilter;
             document.getElementById('total_rusak_filter').innerText = totalRusakFilter;
 
             const tbody = document.getElementById('tabel_rekap_petugas');
             tbody.innerHTML = "";
             dataRekapGlobal = []; // reset data rekap untuk PDF
 
-            // RENDER TABEL BERSAMAAN DENGAN DATA DUPLIKAT
+            // RENDER TABEL
             Object.entries(rekapPetugas).forEach(([nama, info]) => {
-                dataRekapGlobal.push([nama, info.unit, info.pakai, info.rusak, info.pakai + info.rusak]);
+                // LOGIKA BARU: Total Produksi sekarang adalah Terpakai + Duplikat + Rusak
+                dataRekapGlobal.push([nama, info.unit, info.pakai, info.duplikat, info.rusak, info.pakai + info.duplikat + info.rusak]);
                 
-                // Cek apakah petugas ini punya catatan duplikat
-                let elemenDuplikat = "";
-                if (info.duplikat.length > 0) {
-                    elemenDuplikat = `
-                        <div class="mt-1.5 p-1.5 bg-yellow-900/20 border border-yellow-700/30 rounded-md w-max">
-                            <div class="text-[9px] font-black text-yellow-500 uppercase">Cetak Duplikat (${info.duplikat.length}):</div>
-                            <div class="text-[12px] text-yellow-100 font-mono mt-0.5 tracking-tight">${info.duplikat.join(', ')}</div>
-                        </div>
-                    `;
-                }
-
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                         <td class="p-5 font-bold">
                             <span class="text-white">${nama}</span><br>
                             <span class="text-[9px] text-slate-500 uppercase tracking-tighter">${info.unit}</span>
-                            ${elemenDuplikat} <!-- Label Duplikat Muncul Di Sini -->
                         </td>
                         <td class="p-5 text-center font-black text-emerald-400">${info.pakai}</td>
+                        <td class="p-5 text-center font-black text-yellow-500">${info.duplikat}</td>
                         <td class="p-5 text-center font-black text-red-500">${info.rusak}</td>
-                        <td class="p-5 text-center font-black text-blue-400">${info.pakai + info.rusak}</td>
+                        <td class="p-5 text-center font-black text-blue-400">${info.pakai + info.duplikat + info.rusak}</td>
                     </tr>
                 `;
             });
 
             if(dataRekapGlobal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-slate-500 italic uppercase text-[10px] font-bold">Data tidak ditemukan pada tanggal ini</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-500 italic uppercase text-[10px] font-bold">Data tidak ditemukan pada tanggal ini</td></tr>`;
             }
 
             updateChart(sebaran);
         }
 
-        // FUNGSI EXPORT PDF FORMAL (BUKAN CROP)
+        // FUNGSI EXPORT PDF FORMAL
         function exportLaporanPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -228,13 +227,14 @@
 
             doc.setFontSize(11);
             doc.text(`Periode Laporan : ${tgl}`, 20, 42);
-            doc.text(`Total Terpakai     : ${document.getElementById('total_filter').innerText} Lembar`, 20, 48);
-            doc.text(`Total Rusak         : ${document.getElementById('total_rusak_filter').innerText} Lembar`, 20, 54);
+            doc.text(`Total Terpakai    : ${document.getElementById('total_filter').innerText} Lembar`, 20, 48);
+            doc.text(`Total Duplikat    : ${document.getElementById('total_duplikat_filter').innerText} Lembar`, 20, 54);
+            doc.text(`Total Rusak       : ${document.getElementById('total_rusak_filter').innerText} Lembar`, 20, 60);
 
-            // Tabel Data menggunakan autoTable (Hasil rapi, bukan gambar)
+            // Tabel Data menggunakan autoTable
             doc.autoTable({
-                startY: 65,
-                head: [['NAMA PETUGAS', 'UNIT KERJA', 'TERPAKAI', 'RUSAK', 'TOTAL']],
+                startY: 70,
+                head: [['NAMA PETUGAS', 'UNIT KERJA', 'TERPAKAI', 'DUPLIKAT', 'RUSAK', 'TOTAL']],
                 body: dataRekapGlobal,
                 theme: 'striped',
                 headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -242,7 +242,8 @@
                 columnStyles: {
                     2: { halign: 'center' },
                     3: { halign: 'center' },
-                    4: { halign: 'center', fontStyle: 'bold' }
+                    4: { halign: 'center' },
+                    5: { halign: 'center', fontStyle: 'bold' }
                 }
             });
 
