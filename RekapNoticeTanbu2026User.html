@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samsat Tanbu - Database Notice</title>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3a8a">
+<link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -160,7 +163,7 @@
                 </div>
 
                 <div class="mt-10 flex justify-between text-center text-[10px] font-bold uppercase px-4">
-                    <div class="w-35">Mengetahui,<br>Kasi PKB & BBNKB<br><br><br><br>Adimas Fitriandi, S.T.,M.T<br>Nip. 19800813 200712 1 001</div>
+                    <div class="w-35">Mengetahui,<br>Kepala Seksi PKB & BBNKB<br><br><br><br>Adimas Fitriandi, S.T.,M.T<br>Nip. 19800813 200712 1 001</div>
                     <div class="w-35">Batulicin, <span id="tgl_skrg"></span><br><br><br><br><br> <span id="nama_ttd"></span> </div>
                 </div>
             </div>
@@ -324,5 +327,14 @@
             hitung();
         }
     </script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Terdaftar', reg))
+                .catch(err => console.error('Service Worker Gagal', err));
+        });
+    }
+</script>
 </body>
 </html>
