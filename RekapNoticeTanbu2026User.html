@@ -11,12 +11,37 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         @media print { 
+            /* 1. Sembunyikan elemen UI navigasi & tombol */
             .no-print { display: none !important; }
-            #modalBigData { position: relative !important; display: block !important; padding: 0 !important; }
+
+            /* 2. HANYA tampilkan modal yang sedang terbuka (aktif) */
+            #modalBigData:not(.hidden), 
+            #modalRekapGlobal:not(.hidden) { 
+                position: relative !important; 
+                display: block !important; 
+                padding: 0 !important; 
+            }
+
+            /* 3. Sembunyikan secara paksa modal yang sedang ditutup */
+            #modalBigData.hidden, 
+            #modalRekapGlobal.hidden { 
+                display: none !important; 
+            }
+
             body { background: white; }
+
+            /* 4. Optimasi Tabel: Mencegah baris terpotong di tengah saat pindah halaman kertas */
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-row-group; }
         }
+
         .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(5px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
@@ -40,25 +65,25 @@
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mb-6">
             <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
                 <span class="text-[9px] font-black uppercase tracking-widest">Input SKPD Harian</span>
-                <button onclick="resetForm()" class="text-[9px] bg-white/20 px-4 py-1.5 rounded-full font-black uppercase">Reset</button>
+                <div class="flex items-center gap-2">
+                    <input type="date" id="tgl_input" class="text-[9px] text-slate-900 px-2 py-1 rounded-lg font-bold outline-none h-7">
+                    <button onclick="resetForm()" class="text-[9px] bg-white/20 px-4 py-1.5 rounded-full font-black uppercase">Reset</button>
+                </div>
             </div>
             
             <div class="p-5 space-y-4">
                 <div>
                     <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Pilih Petugas</label>
                     <select id="petugas" onchange="pilihPetugas()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-sm outline-none focus:border-blue-500 transition-all">
-                        <option value="">-- Nama Petugas --</option>
-                        <option value="Niana Safitri|SKPD Baru|SKPD Baru">Niana Safitri</option>
-                        <option value="Ein Husnul Khotimah, S.Kom|SKPD Reguler (Induk)|SKPD Tahunan Dan Daftar Ulang">Ein Husnul Khotimah, S.Kom</option>
+                        <option value="">-- Nama Petugas --</option>       
                         <option value="Bambang Pujo HS, S.Kom|Esamsat Dan Signal|SKPD Signal/Esamsat">Bambang Pujo HS, S.Kom</option>
-                        <option value="Muhammad Noor|Layanan Online|SKPD Online">Muhammad Noor</option>
-                        <option value="Muhammad Ridani, S.E|Samsat Keliling 1|SKPD Samsat Keliling 1">Muhammad Ridani, S.E</option>
-                        <option value="Hermawan|Samsat Keliling 1|SKPD Samsat Keliling 1">Hermawan</option>
-                        <option value="Muhammad Ali|Samsat Keliling 2|SKPD Samsat Keliling 2">Muhammad Ali</option>
-                        <option value="Muhammad Rama Ali|Samsat Keliling 2|SKPD Samsat Keliling 2">Muhammad Rama Ali</option>
-                        <option value="Shandi Pratama|Samsat Keliling Malam|SKPD Samsat Keliling Malam">Shandi Pratama</option>
                         <option value="Dinar Djati Ap|Samsat Keliling Malam|SKPD Samsat Keliling Malam">Dinar Djati Ap</option>
-                        <option value="Mall Pelayanan Publik|MPP Tanbu|SKPD Mall Pelayanan Publik">Mall Pelayanan Publik</option>
+                        <option value="Ein Husnul Khotimah, S.Kom|SKPD Reguler (Induk)|SKPD Tahunan Dan Daftar Ulang">Ein Husnul Khotimah, S.Kom</option>                      
+                        <option value="Muhammad Noor|Layanan Online|SKPD Online">Muhammad Noor</option>
+                        <option value="Muhammad Gega Mahendra|MPP Tanbu|SKPD Mall Pelayanan Publik">Muhammad Gega Mahendra</option>
+                        <option value="Niana Safitri|SKPD Baru|SKPD Baru">Niana Safitri</option>
+                        <option value="Samsat Keliling 1|Samsat Keliling 1|SKPD Samsat Keliling 1">USER SAMKEL 1</option>
+                        <option value="Samsat Keliling 2|Samsat Keliling 2|SKPD Samsat Keliling 2">USER SAMKEL 2</option> 
                         <option value="Expo|Expo|Layanan Expo Tanbu">Expo</option>
                     </select>
                 </div>  
@@ -97,8 +122,8 @@
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3 mt-4">
-                        <textarea id="ket_duplikat" placeholder="Keterangan / Nomor duplikat..." class="w-full p-3 bg-slate-800 rounded-xl text-[10px] text-emerald-400 outline-none h-16 border border-slate-700"></textarea>
-                        <textarea id="ket_rusak" placeholder="Keterangan notice rusak..." class="w-full p-3 bg-slate-800 rounded-xl text-[10px] text-yellow-500 outline-none h-16 border border-slate-700"></textarea>
+                        <textarea id="ket_duplikat" placeholder="Nomor Notice duplikat..." class="w-full p-3 bg-slate-800 rounded-xl text-[12px] text-emerald-400 outline-none h-16 border border-slate-700"></textarea>
+                        <textarea id="ket_rusak" placeholder="Nomor notice rusak..." class="w-full p-3 bg-slate-800 rounded-xl text-[12px] text-yellow-500 outline-none h-16 border border-slate-700"></textarea>
                     </div>
                 </div>
 
@@ -109,8 +134,13 @@
 
         <!-- Riwayat -->
         <div class="flex justify-between items-center px-2 mb-4">
-            <h2 class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Riwayat Entri</h2>
-            <button onclick="bukaBigData()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-900/20">Lihat Laporan</button>
+            <h2 onclick="toggleSemuaRiwayat()" class="text-[9px] font-black uppercase text-slate-400 tracking-widest cursor-pointer hover:text-blue-500 flex items-center gap-1 transition-colors">
+                Riwayat Entri <span id="icon_riwayat" class="text-[8px] mt-0.5">▼</span>
+            </h2>
+            <div class="flex gap-2">
+                <button onclick="bukaRekapGlobal()" class="bg-blue-600 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-blue-900/20">Lap. Bulanan</button>
+                <button onclick="bukaBigData()" class="bg-emerald-600 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-900/20">Lap. Individu</button>
+            </div>
         </div>
         
         <div id="history_container" class="space-y-3">
@@ -118,7 +148,7 @@
         </div>
     </div>
 
-    <!-- MODAL BIG DATA -->
+    <!-- MODAL BIG DATA (INDIVIDU) -->
     <div id="modalBigData" class="hidden fixed inset-0 z-[100] bg-white overflow-y-auto">
         <div class="p-4 sm:p-8 max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
@@ -170,6 +200,49 @@
         </div>
     </div>
 
+    <!-- MODAL REKAP GLOBAL (BULANAN) -->
+    <div id="modalRekapGlobal" class="hidden fixed inset-0 z-[100] bg-white overflow-y-auto">
+        <div class="p-4 sm:p-8 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 no-print border-b pb-4">
+                <button onclick="tutupRekapGlobal()" class="bg-slate-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">← Kembali</button>
+                <div class="flex gap-2">
+                    <input type="month" id="filter_bulan_global" onchange="prosesRekapGlobal()" class="border p-2 rounded-lg text-[10px] font-bold">
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase">Cetak</button>
+                </div>
+            </div>
+
+            <div id="area_laporan_global">
+                <div class="text mb-6 border-b-2 border-slate-900 pb-4 text-center">
+                    <h2 class="font-black text-lg uppercase leading-tight">Laporan Bulanan Global SKPD</h2>
+                    <p class="font-bold text-[11px] uppercase mt-1 text-blue-900">Akumulasi Penggunaan Notice Per Petugas</p>
+                    <p id="judul_bulan_global" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"></p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-slate-300 text-[10px]">
+                        <thead>
+                            <tr class="bg-slate-100 uppercase">
+                                <th class="border border-slate-300 p-2 text-left">Nama Petugas</th>
+                                <th class="border border-slate-300 p-2">Terpakai</th>
+                                <th class="border border-slate-300 p-2">Duplikat</th>
+                                <th class="border border-slate-300 p-2">Rusak</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabel_global_body" class="text-center "></tbody>
+                        <tfoot class="font-black bg-slate-50">
+                            <tr>
+                                <td class="border border-slate-300 p-2 text-right">TOTAL KESELURUHAN :</td>
+                                <td id="gfoot_pakai" class="border border-slate-300 p-2 text-green-700 font-bold text-xs text-center">0</td>
+                                <td id="gfoot_duplikat" class="border border-slate-300 p-2 text-emerald-700 font-bold text-xs text-center">0</td>
+                                <td id="gfoot_rusak" class="border border-slate-300 p-2 text-red-700 font-bold text-xs text-center">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://qqehhkzqtkxnjlhktlqw.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZWhoa3pxdGt4bmpsaGt0bHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTk0NDcsImV4cCI6MjA5MzEzNTQ0N30.hYNyrCEHMCCEmWFlisCVnqrUhgZGQsKBbzVMQtILMS4';
@@ -178,6 +251,20 @@
         const hariIni = new Date();
         document.getElementById('filter_bulan').value = `${hariIni.getFullYear()}-${String(hariIni.getMonth() + 1).padStart(2, '0')}`;
         document.getElementById('tgl_skrg').innerText = hariIni.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+        
+        // Inisiasi Filter Tanggal Input (Local Time)
+        const tzOffset = hariIni.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0,10);
+        document.getElementById('tgl_input').value = localISOTime;
+
+        let globalRiwayatData = [];
+        let tampilSemuaRiwayat = false;
+
+        function toggleSemuaRiwayat() {
+            tampilSemuaRiwayat = !tampilSemuaRiwayat;
+            document.getElementById('icon_riwayat').innerText = tampilSemuaRiwayat ? '▲' : '▼';
+            renderRiwayat();
+        }
 
         function hitung() {
             const awal = parseInt(document.getElementById('no_awal').value) || 0;
@@ -185,7 +272,6 @@
             const rusak = parseInt(document.getElementById('total_rusak').value) || 0;
             const duplikat = parseInt(document.getElementById('total_duplikat').value) || 0;
             
-            // Pengurangan meliputi notice rusak dan duplikat
             let hasil = (akhir >= awal && awal > 0) ? (akhir - awal + 1) - rusak - duplikat : 0;
             hasil = Math.max(0, hasil); 
             
@@ -203,25 +289,45 @@
 
         async function muatRiwayat(nama) {
             const { data } = await _supabase.from('rekap_notice').select('*').eq('petugas_nama', nama).order('created_at', { ascending: false });
+            globalRiwayatData = data || [];
             
             let tTotal = 0;
-            data?.forEach(r => tTotal += (parseInt(r.total_terpakai) + parseInt(r.total_duplikat || 0) + parseInt(r.total_rusak)));
+            globalRiwayatData.forEach(r => tTotal += (parseInt(r.total_terpakai) + parseInt(r.total_duplikat || 0) + parseInt(r.total_rusak)));
             document.getElementById('sisa_stok_global').innerText = 1000 - tTotal;
 
+            renderRiwayat();
+        }
+
+        function renderRiwayat() {
             const container = document.getElementById('history_container');
             container.innerHTML = "";
-            data?.slice(0, 5).forEach(item => {
+            
+            const limit = tampilSemuaRiwayat ? globalRiwayatData.length : 5;
+            const dataToRender = globalRiwayatData.slice(0, limit);
+
+            if(dataToRender.length === 0) {
+                container.innerHTML = '<p class="text-center text-[10px] text-slate-400 py-10 font-bold uppercase tracking-widest italic">Tidak ada riwayat</p>';
+                return;
+            }
+
+            dataToRender.forEach(item => {
+                const d = new Date(item.created_at);
+                const tglFormat = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                const jsonStr = JSON.stringify(item).replace(/'/g, "\\'"); // Aman untuk onclick
+
                 container.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center fade-in">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center fade-in cursor-pointer hover:border-blue-300 active:scale-95 transition-all" onclick='isiEdit(${jsonStr})'>
                         <div>
+                            <p class="text-[9px] font-bold text-blue-500 mb-1">${tglFormat}</p>
                             <p class="text-[11px] font-black text-slate-700 tracking-tighter">${item.nomor_seri_awal || item.nomor_awal} - ${item.nomor_seri_akhir || item.nomor_akhir}</p>
                             <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">P: ${item.total_terpakai} | D: ${item.total_duplikat || 0} | R: ${item.total_rusak}</p>
                         </div>
-                        <button onclick='isiEdit(${JSON.stringify(item)})' class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Edit</button>
+                        <button class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-[9px] font-black uppercase pointer-events-none">Edit</button>
                     </div>`;
             });
         }
 
+        // --- FUNGSI MODAL INDIVIDU ---
         function bukaBigData() {
             if(!document.getElementById('petugas').value) return alert("Pilih Petugas!");
             document.getElementById('modalBigData').classList.remove('hidden');
@@ -278,12 +384,82 @@
             document.getElementById('foot_rusak').innerText = tRusak;
         }
 
+        // --- FUNGSI MODAL REKAP GLOBAL ---
+        function bukaRekapGlobal() {
+            document.getElementById('modalRekapGlobal').classList.remove('hidden');
+            document.body.style.overflow = "hidden";
+            document.getElementById('filter_bulan_global').value = document.getElementById('filter_bulan').value;
+            prosesRekapGlobal();
+        }
+
+        function tutupRekapGlobal() { 
+            document.getElementById('modalRekapGlobal').classList.add('hidden'); 
+            document.body.style.overflow = "auto";
+        }
+
+        async function prosesRekapGlobal() {
+            const filVal = document.getElementById('filter_bulan_global').value.split('-');
+            const fThn = parseInt(filVal[0]);
+            const fBln = parseInt(filVal[1]) - 1;
+
+            document.getElementById('judul_bulan_global').innerText = new Date(fThn, fBln).toLocaleString('id-ID', {month:'long', year:'numeric'});
+
+            const { data } = await _supabase.from('rekap_notice').select('*');
+
+            const rekap = {};
+            let gtPakai = 0, gtDuplikat = 0, gtRusak = 0;
+
+            data?.forEach(r => {
+                const d = new Date(r.created_at);
+                if(d.getMonth() === fBln && d.getFullYear() === fThn) {
+                    const petugas = r.petugas_nama || 'Tidak Diketahui';
+                    if(!rekap[petugas]) rekap[petugas] = { pakai: 0, duplikat: 0, rusak: 0 };
+                    
+                    const p = parseInt(r.total_terpakai) || 0;
+                    const dp = parseInt(r.total_duplikat) || 0;
+                    const rs = parseInt(r.total_rusak) || 0;
+
+                    rekap[petugas].pakai += p;
+                    rekap[petugas].duplikat += dp;
+                    rekap[petugas].rusak += rs;
+
+                    gtPakai += p;
+                    gtDuplikat += dp;
+                    gtRusak += rs;
+                }
+            });
+
+            let html = "";
+            for (const [nama, r] of Object.entries(rekap)) {
+                html += `<tr>
+                    <td class="border border-slate-300 p-2 font-bold text-left">${nama}</td>
+                    <td class="border border-slate-300 p-2 font-bold text-green-700">${r.pakai}</td>
+                    <td class="border border-slate-300 p-2 font-bold text-emerald-700">${r.duplikat}</td>
+                    <td class="border border-slate-300 p-2 font-bold text-red-700">${r.rusak}</td>
+                </tr>`;
+            }
+
+            document.getElementById('tabel_global_body').innerHTML = html || '<tr><td colspan="4" class="p-10 text-slate-300 italic uppercase font-bold text-center">Tidak ada data</td></tr>';
+            document.getElementById('gfoot_pakai').innerText = gtPakai;
+            document.getElementById('gfoot_duplikat').innerText = gtDuplikat;
+            document.getElementById('gfoot_rusak').innerText = gtRusak;
+        }
+
+        // --- FUNGSI CRUD ---
         async function simpanLaporan() {
             const pet = document.getElementById('petugas').value;
             if(!pet) return alert("Pilih Petugas!");
             const info = pet.split('|');
             const editId = document.getElementById('edit_id').value;
             
+            // Format Tanggal untuk Supabase
+            const tglInput = document.getElementById('tgl_input').value;
+            const dateObj = new Date(tglInput);
+            const now = new Date();
+            // Menambah jam saat ini agar waktu masuk siang hari dan tidak bergeser hari kebelakang saat konversi zona waktu
+            dateObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds()); 
+            const createdAtISO = dateObj.toISOString();
+
             const payload = {
                 petugas_nama: info[0], 
                 unit_kerja: info[1], 
@@ -294,12 +470,13 @@
                 total_duplikat: parseInt(document.getElementById('total_duplikat').value) || 0,
                 total_rusak: parseInt(document.getElementById('total_rusak').value) || 0,
                 nomor_duplikat: document.getElementById('ket_duplikat').value,
-                keterangan_rusak: document.getElementById('ket_rusak').value
+                keterangan_rusak: document.getElementById('ket_rusak').value,
+                created_at: createdAtISO 
             };
 
             const res = editId ? await _supabase.from('rekap_notice').update(payload).eq('id', editId) : await _supabase.from('rekap_notice').insert([payload]);
             if(res.error) alert(res.error.message);
-            else { alert("Laporan Berhasil!"); resetForm(); muatRiwayat(info[0]); }
+            else { alert("Laporan Berhasil disimpan!"); resetForm(); muatRiwayat(info[0]); }
         }
 
         function isiEdit(item) {
@@ -312,6 +489,14 @@
             document.getElementById('ket_duplikat').value = item.nomor_duplikat || "";
             document.getElementById('ket_rusak').value = item.keterangan_rusak || "";
             document.getElementById('btnSimpan').innerText = "Update Data";
+            
+            // Atur Tanggal ke tanggal item saat diedit
+            if(item.created_at) {
+                const d = new Date(item.created_at);
+                const tzOffset = d.getTimezoneOffset() * 60000; 
+                const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0,10);
+                document.getElementById('tgl_input').value = localISOTime;
+            }
             hitung();
         }
 
@@ -324,6 +509,11 @@
             document.getElementById('ket_duplikat').value = "";
             document.getElementById('ket_rusak').value = "";
             document.getElementById('btnSimpan').innerText = "Simpan Laporan";
+            
+            // Reset ke tanggal hari ini
+            const tzOffset = hariIni.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0,10);
+            document.getElementById('tgl_input').value = localISOTime;
             hitung();
         }
     </script>
