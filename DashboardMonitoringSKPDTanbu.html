@@ -118,11 +118,12 @@
         let myChart;
         let dataRekapGlobal = []; // Untuk simpan data saat cetak PDF
 
-        // Set default ke Tanggal Hari Ini (WITA)
-        const d = new Date();
-        d.setHours(d.getHours() + 8); 
-        const hariIniISO = d.toISOString().split('T')[0];
-        document.getElementById('filter_tanggal').value = hariIniISO;
+// Set default ke Tanggal Hari Ini (WITA)
+const now = new Date();
+const tzOffset = now.getTimezoneOffset() * 60000;
+const hariIniISO = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
+
+document.getElementById('filter_tanggal').value = hariIniISO;
 
         async function updateDashboard() {
             const tglPilihan = document.getElementById('filter_tanggal').value;
@@ -143,39 +144,41 @@
             lp?.forEach(row => {
                 const pake = parseInt(row.total_terpakai) || 0;
                 const rsk = parseInt(row.total_rusak) || 0;
-                const dup = parseInt(row.total_duplikat) || 0; // LOGIKA BARU: Ambil dari column database
-                const tglData = row.created_at.split('T')[0];
+                const dup = parseInt(row.total_duplikat) || 0;
 
-                // 1. Hitung Akumulasi Hari Ini (Real-time)
-                if(tglData === hariIniISO) {
+                // --- PERBAIKAN DI SINI: Konversi created_at ke Tanggal Lokal WITA ---
+                const d = new Date(row.created_at);
+                // Tambahkan 8 jam untuk WITA jika data dari ISO String UTC
+                const tglDataLokal = new Date(d.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+                // 1. Hitung Akumulasi Hari Ini (Real-time sesuai filter hari ini)
+                if(tglDataLokal === hariIniISO) {
                     totalHariIni += pake;
                 }
 
                 // 2. Hitung Berdasarkan Filter Pilihan
-                if(tglData === tglPilihan) {
+                if(tglDataLokal === tglPilihan) {
                     totalFilter += pake;
                     totalRusakFilter += rsk;
-                    totalDuplikatFilter += dup; // LOGIKA BARU: Tambahkan dari integer
+                    totalDuplikatFilter += dup;
 
-                    // BUAT/SIAPKAN WADAH DATA PETUGAS
                     if(!rekapPetugas[row.petugas_nama]) {
                         rekapPetugas[row.petugas_nama] = { 
                             unit: row.unit_kerja, 
                             pakai: 0, 
                             rusak: 0,
-                            duplikat: 0 // LOGIKA BARU: Diubah jadi wadah angka 0, bukan array []
+                            duplikat: 0
                         };
                     }
                     
-                    // TAMBAHKAN ANGKA TERPAKAI, RUSAK & DUPLIKAT
                     rekapPetugas[row.petugas_nama].pakai += pake;
                     rekapPetugas[row.petugas_nama].rusak += rsk;
-                    rekapPetugas[row.petugas_nama].duplikat += dup; // LOGIKA BARU: Menambahkan nilai integer
+                    rekapPetugas[row.petugas_nama].duplikat += dup;
 
                     sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
                 }   
             });
-
+            
             // Update UI
             document.getElementById('total_hari_ini').innerText = totalHariIni;
             document.getElementById('total_filter').innerText = totalFilter;

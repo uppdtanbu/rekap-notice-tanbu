@@ -454,10 +454,23 @@
             
             // Format Tanggal untuk Supabase
             const tglInput = document.getElementById('tgl_input').value;
-            const dateObj = new Date(tglInput);
+            const [y, m, d] = tglInput.split('-');
             const now = new Date();
-            // Menambah jam saat ini agar waktu masuk siang hari dan tidak bergeser hari kebelakang saat konversi zona waktu
-            dateObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds()); 
+            
+            // Dapatkan tanggal hari ini (waktu lokal) untuk perbandingan
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const hariIniLokal = new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
+
+            let dateObj;
+            if (tglInput === hariIniLokal) {
+                // 1. Jika input untuk HARI INI: Gunakan waktu persis detik ini (Realtime)
+                dateObj = new Date(); 
+            } else {
+                // 2. Jika input MUNDUR (Backdate): Paksa set waktu ke jam 12:00 siang lokal.
+                // Ini menjamin tanggal tidak akan bergeser mundur saat dikurangi 8 jam oleh Supabase (UTC)
+                dateObj = new Date(y, m - 1, d, 12, 0, 0); 
+            }
+            
             const createdAtISO = dateObj.toISOString();
 
             const payload = {
