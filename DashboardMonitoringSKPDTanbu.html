@@ -30,8 +30,8 @@
     <header class="bg-slate-800 border-b border-slate-700 p-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight text-white uppercase">Dashboard Monitoring SKPD</h1>
-                <p class="text-xs text-blue-400 font-bold uppercase tracking-widest">Real-Time • UPPD BATULICIN</p>
+                <h1 class="text-xl font-black tracking-tight text-white uppercase">Dashboard Monitoring Notice</h1>
+                <p class="text-xs text-blue-400 font-bold uppercase tracking-widest">Real-Time • UPPD Tanah Bumbu</p>
             </div>
             <div id="status_koneksi" class="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
                 <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -84,7 +84,6 @@
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- Tetap Menggunakan Type Date (Harian) -->
                     <input type="date" id="filter_tanggal" onchange="updateDashboard()" class="bg-slate-900 border border-slate-700 text-[10px] font-bold uppercase text-white px-3 py-2 rounded-xl outline-none focus:border-blue-500">
                     
                     <button onclick="bukaModalLaporan()" class="bg-blue-700 hover:bg-blue-600 text-white p-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20" title="Buka Laporan">
@@ -119,22 +118,23 @@
         </div>
     </main>
 
+    <!-- MODAL VIEWER: Optimasi tata letak tombol navigasi agar rapi di HP -->
     <div id="modalLaporanViewer" class="hidden fixed inset-0 z-[100] bg-slate-200 overflow-y-auto">
-        <div class="sticky top-0 bg-slate-900 text-white p-4 flex justify-between items-center z-50 no-print shadow-2xl border-b border-slate-700">
-            <button onclick="tutupModalLaporan()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+        <div class="sticky top-0 bg-slate-900 text-white p-3 flex flex-wrap gap-2 justify-between items-center z-50 no-print shadow-2xl border-b border-slate-700">
+            <button onclick="tutupModalLaporan()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">
                 &laquo; Tutup
             </button>
-            <div class="flex items-center gap-3 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
-                <button onclick="scrollPrev()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[10px] font-black uppercase transition-all">&laquo; Prev User</button>
-                <span id="text_halaman" class="text-[11px] font-black w-32 text-center text-blue-400">0 / 0</span>
-                <button onclick="scrollNext()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[10px] font-black uppercase transition-all">Next User &raquo;</button>
+            <div class="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700 order-3 w-full sm:w-auto sm:order-none justify-between sm:justify-start">
+                <button onclick="scrollPrev()" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[9px] font-black uppercase transition-all">&laquo; Prev</button>
+                <span id="text_halaman" class="text-[10px] font-black w-24 text-center text-blue-400">0 / 0</span>
+                <button onclick="scrollNext()" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[9px] font-black uppercase transition-all">Next &raquo;</button>
             </div>
-            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
                 Cetak ke PDF
             </button>
         </div>
 
-        <div id="container_halaman_laporan" class="py-8 px-4 space-y-12">
+        <div id="container_halaman_laporan" class="py-4 sm:py-8 px-2 sm:px-4 space-y-12">
         </div>
     </div>
 
@@ -156,7 +156,7 @@
         };
 
         let myChart;
-        let dataLaporanSebulanRaw = []; // Menampung data sebulan penuh untuk modal cetak
+        let dataLaporanSebulanRaw = []; 
         let totalPages = 0;
         let currentPageIdx = 0;
 
@@ -166,8 +166,8 @@
         document.getElementById('filter_tanggal').value = hariIniISO;
 
         async function updateDashboard() {
-            const tglPilihan = document.getElementById('filter_tanggal').value; // format: YYYY-MM-DD
-            const bulanPilihan = tglPilihan.slice(0, 7); // format: YYYY-MM
+            const tglPilihan = document.getElementById('filter_tanggal').value; 
+            const bulanPilihan = tglPilihan.slice(0, 7); 
             
             const opsiTgl = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('label_filter_kpi').innerText = new Date(tglPilihan).toLocaleDateString('id-ID', opsiTgl);
@@ -179,7 +179,7 @@
             let totalRusakFilter = 0;
             const rekapPetugas = {};
             const sebaran = {};
-            dataLaporanSebulanRaw = []; // Reset penampung bulanan
+            dataLaporanSebulanRaw = []; 
 
             lp?.forEach(row => {
                 const pake = parseInt(row.total_terpakai) || 0;
@@ -189,10 +189,8 @@
                 const tglDataLokal = new Date(d.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
                 const bulanDataLokal = tglDataLokal.slice(0, 7);
 
-                // Tetap hitung real-time hari ini
                 if(tglDataLokal === hariIniISO) totalHariIni += pake;
 
-                // 1. FILTER UNTUK DASHBOARD UTAMA (Tetap Harian)
                 if(tglDataLokal === tglPilihan) {
                     totalFilter += pake;
                     totalRusakFilter += rsk;
@@ -207,7 +205,6 @@
                     sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
                 }   
 
-                // 2. FILTER UNTUK LAPORAN CETAK (Otomatis sebulan penuh berdasarkan tglPilihan)
                 if(bulanDataLokal === bulanPilihan) {
                     dataLaporanSebulanRaw.push(row);
                 }
@@ -254,7 +251,6 @@
                 grouped[nama].push(row);
             });
 
-            // Urutkan rincian baris berdasarkan tanggal terlama -> terbaru
             Object.keys(grouped).forEach(nama => {
                 grouped[nama].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
             });
@@ -277,7 +273,6 @@
                     tPakai += pakai; tDup += dup; tRusak += rusak;
 
                     const dInput = new Date(r.created_at);
-                    // Konversi ke WITA (+8) untuk penulisan tanggal per baris rincian harian
                     const dLokalInput = new Date(dInput.getTime() + (8 * 60 * 60 * 1000));
                     const tglInputStr = `${String(dLokalInput.getDate()).padStart(2,'0')}-${String(dLokalInput.getMonth()+1).padStart(2,'0')}-${dLokalInput.getFullYear()}`;
 
@@ -299,45 +294,47 @@
 
                 const nipPetugas = nipLookup[nama] || "Nip. ...........................";
                 
-                // Ambil info Nama Bulan & Tahun dari filter tanggal dashboard untuk judul Rekap Cetak
                 const tglPilihan = document.getElementById('filter_tanggal').value;
                 const bulanJudul = new Date(tglPilihan).toLocaleDateString('id-ID', {year:'numeric', month:'long'});
 
+                // PERBAIKAN: Padding responsif (p-4 di HP, p-8 di laptop), pembungkus tabel overflow-x agar bisa digeser di HP, dan flex penandatangan dinamis (vertikal di HP, horizontal saat cetak/layar besar)
                 const pageHtml = `
-                    <div class="laporan-page max-w-4xl mx-auto bg-white p-8 shadow-2xl print-page" id="page_${index}">
+                    <div class="laporan-page max-w-4xl mx-auto bg-white p-4 sm:p-8 shadow-2xl print-page" id="page_${index}">
                         <div class="text mb-6 border-b-2 border-slate-900 pb-4 text-center text-slate-900">
-                            <h2 class="font-black text-lg uppercase leading-tight">Rekapitulasi SKPD UPPD Batulicin</h2>
-                            <p class="font-bold text-[12px] uppercase mt-1 text-blue-900">${layananNama} - Periode ${bulanJudul}</p>
+                            <h2 class="font-black text-base sm:text-lg uppercase leading-tight">Rekapitulasi SKPD UPPD Batulicin</h2>
+                            <p class="font-bold text-[11px] sm:text-[12px] uppercase mt-1 text-blue-900">${layananNama} - Periode ${bulanJudul}</p>
                         </div>
 
-                        <table class="w-full border-collapse border border-slate-300 text-[10px] mb-10 text-slate-900">
-                            <thead>
-                                <tr class="bg-slate-100 uppercase border-b-2 border-slate-400">
-                                    <th class="border-x border-slate-300 p-2">Tanggal</th>
-                                    <th class="border-x border-slate-300 p-2 w-32">Seri Awal - Akhir</th>
-                                    <th class="border-x border-slate-300 p-2">Terpakai</th>
-                                    <th class="border-x border-slate-300 p-2">Duplikat</th>
-                                    <th class="border-x border-slate-300 p-2">Rusak</th>
-                                    <th class="border-x border-slate-300 p-2 text-left">Keterangan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-center">
-                                ${trs}
-                            </tbody>
-                            <tfoot class="font-black bg-slate-50 border-t-2 border-slate-400">
-                                <tr>
-                                    <td colspan="2" class="border-x border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
-                                    <td class="border-x border-slate-300 p-2 text-green-700 font-bold text-xs text-center">${tPakai}</td>
-                                    <td class="border-x border-slate-300 p-2 text-emerald-700 font-bold text-xs text-center">${tDup}</td>
-                                    <td class="border-x border-slate-300 p-2 text-red-700 font-bold text-xs text-center">${tRusak}</td>
-                                    <td class="border-x border-slate-300 p-2"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="w-full overflow-x-auto print:overflow-visible mb-10">
+                            <table class="w-full border-collapse border border-slate-300 text-[10px] text-slate-900 min-w-[600px] print:min-w-0">
+                                <thead>
+                                    <tr class="bg-slate-100 uppercase border-b-2 border-slate-400">
+                                        <th class="border-x border-slate-300 p-2">Tanggal</th>
+                                        <th class="border-x border-slate-300 p-2 w-32">Seri Awal - Akhir</th>
+                                        <th class="border-x border-slate-300 p-2">Terpakai</th>
+                                        <th class="border-x border-slate-300 p-2">Duplikat</th>
+                                        <th class="border-x border-slate-300 p-2">Rusak</th>
+                                        <th class="border-x border-slate-300 p-2 text-left">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    ${trs}
+                                </tbody>
+                                <tfoot class="font-black bg-slate-50 border-t-2 border-slate-400">
+                                    <tr>
+                                        <td colspan="2" class="border-x border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
+                                        <td class="border-x border-slate-300 p-2 text-green-700 font-bold text-xs text-center">${tPakai}</td>
+                                        <td class="border-x border-slate-300 p-2 text-emerald-700 font-bold text-xs text-center">${tDup}</td>
+                                        <td class="border-x border-slate-300 p-2 text-red-700 font-bold text-xs text-center">${tRusak}</td>
+                                        <td class="border-x border-slate-300 p-2"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
-                        <div class="mt-10 flex justify-between text-center text-[10px] font-bold uppercase px-4 text-slate-900">
-                            <div class="w-48 text-center">Mengetahui,<br>Kepala Seksi PKB & BBNKB<br><br><br><br>Adimas Fitriandi, S.T.,M.T<br>Nip. 19800813 200712 1 001</div>
-                            <div class="w-48 text-center">Batulicin, ........................... 2026<br>Petugas Operasional<br><br><br><br>${nama}<br>${nipPetugas}</div>
+                        <div class="mt-6 flex flex-col md:flex-row gap-8 md:gap-0 justify-between text-center text-[10px] font-bold uppercase px-4 text-slate-900 print:flex-row print:justify-between print:gap-0">
+                            <div class="w-full md:w-48 print:w-48 text-center">Mengetahui,<br>Kepala Seksi PKB & BBNKB<br><br><br><br>Adimas Fitriandi, S.T.,M.T<br>Nip. 19800813 200712 1 001</div>
+                            <div class="w-full md:w-48 print:w-48 text-center">Batulicin, ........................... 2026<br>Petugas Operasional<br><br><br><br>${nama}<br>${nipPetugas}</div>
                         </div>
                     </div>
                 `;
