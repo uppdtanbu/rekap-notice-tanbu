@@ -7,18 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Library Cetak PDF Formal -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @media print {
+            body > *:not(#modalLaporanViewer) { display: none !important; }
+            #modalLaporanViewer {
+                position: relative !important; display: block !important;
+                background: white !important; overflow: visible !important;
+            }
+            .no-print { display: none !important; }
+            .print-page {
+                page-break-after: always;
+                box-shadow: none !important; margin: 0 !important; padding: 20px !important;
+            }
+            #container_halaman_laporan { background: white !important; padding: 0 !important; }
+        }
+    </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
-    <!-- Header -->
     <header class="bg-slate-800 border-b border-slate-700 p-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-tight text-white uppercase">Dashboard Monitoring Notice</h1>
-                <p class="text-xs text-blue-400 font-bold uppercase tracking-widest">Real-Time • UPPD Tanah Bumbu</p>
+                <h1 class="text-xl font-black tracking-tight text-white uppercase">Dashboard Monitoring SKPD</h1>
+                <p class="text-xs text-blue-400 font-bold uppercase tracking-widest">Real-Time • UPPD BATULICIN</p>
             </div>
             <div id="status_koneksi" class="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
                 <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -29,7 +42,6 @@
 
     <main class="container mx-auto p-6 space-y-6">
         
-        <!-- ROW 1: KPI CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
                 <p class="text-xs font-bold text-slate-400 uppercase mb-2">Notice Keluar Hari Ini</p>
@@ -64,7 +76,6 @@
             </div>
         </div>
 
-        <!-- ROW 2: DETAIL REKAPITULASI -->
         <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-xl overflow-hidden">
             <div class="p-3 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
@@ -72,15 +83,15 @@
                     <p class="text-[8px] text-blue-400 font-bold uppercase mt-1">Laporan Berdasarkan Filter Tanggal</p>
                 </div>
                 
-                <!-- FILTER TANGGAL -->
                 <div class="flex flex-wrap items-center gap-2">
+                    <!-- Tetap Menggunakan Type Date (Harian) -->
                     <input type="date" id="filter_tanggal" onchange="updateDashboard()" class="bg-slate-900 border border-slate-700 text-[10px] font-bold uppercase text-white px-3 py-2 rounded-xl outline-none focus:border-blue-500">
                     
-                    <button onclick="exportLaporanPDF()" class="bg-slate-700 hover:bg-slate-600 text-white p-2.5 rounded-xl transition-all flex items-center gap-2" title="Cetak PDF Formal">
+                    <button onclick="bukaModalLaporan()" class="bg-blue-700 hover:bg-blue-600 text-white p-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20" title="Buka Laporan">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span class="text-[10px] font-bold uppercase">Cetak PDF</span>
+                        <span class="text-[10px] font-bold uppercase">Lihat Laporan Bulanan</span>
                     </button>
                 </div>
             </div>
@@ -97,89 +108,111 @@
                         </tr>
                     </thead>
                     <tbody id="tabel_rekap_petugas" class="text-sm border-t border-slate-700">
-                        <!-- Dinamis JS -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ROW 3: VISUALISASI -->
         <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl h-80">
             <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest text-center">Proporsi Penggunaan Per Layanan</h3>
             <canvas id="chartLayanan"></canvas>
         </div>
     </main>
 
+    <div id="modalLaporanViewer" class="hidden fixed inset-0 z-[100] bg-slate-200 overflow-y-auto">
+        <div class="sticky top-0 bg-slate-900 text-white p-4 flex justify-between items-center z-50 no-print shadow-2xl border-b border-slate-700">
+            <button onclick="tutupModalLaporan()" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                &laquo; Tutup
+            </button>
+            <div class="flex items-center gap-3 bg-slate-800 p-1.5 rounded-xl border border-slate-700">
+                <button onclick="scrollPrev()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[10px] font-black uppercase transition-all">&laquo; Prev User</button>
+                <span id="text_halaman" class="text-[11px] font-black w-32 text-center text-blue-400">0 / 0</span>
+                <button onclick="scrollNext()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-[10px] font-black uppercase transition-all">Next User &raquo;</button>
+            </div>
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                Cetak ke PDF
+            </button>
+        </div>
+
+        <div id="container_halaman_laporan" class="py-8 px-4 space-y-12">
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://qqehhkzqtkxnjlhktlqw.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxZWhoa3pxdGt4bmpsaGt0bHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTk0NDcsImV4cCI6MjA5MzEzNTQ0N30.hYNyrCEHMCCEmWFlisCVnqrUhgZGQsKBbzVMQtILMS4';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const nipLookup = {
+            "Bambang Pujo HS, S.Kom": "Nip. 19850101 201001 1 002",
+            "Dinar Djati Ap": "Nip. 19880202 201503 1 005",
+            "Ein Husnul Khotimah, S.Kom": "Nip. 19900303 201801 2 001",
+            "Muhammad Noor": "Nip. 19820404 200812 1 003",
+            "Muhammad Gega Mahendra": "Nip. 19950505 202001 1 008",
+            "Niana Safitri": "Nip. 19930606 201903 2 004",
+            "Samsat Keliling 1": "-",
+            "Samsat Keliling 2": "-",
+            "Expo": "-"
+        };
+
         let myChart;
-        let dataRekapGlobal = []; // Untuk simpan data saat cetak PDF
+        let dataLaporanSebulanRaw = []; // Menampung data sebulan penuh untuk modal cetak
+        let totalPages = 0;
+        let currentPageIdx = 0;
 
-// Set default ke Tanggal Hari Ini (WITA)
-const now = new Date();
-const tzOffset = now.getTimezoneOffset() * 60000;
-const hariIniISO = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
-
-document.getElementById('filter_tanggal').value = hariIniISO;
+        const now = new Date();
+        const tzOffset = now.getTimezoneOffset() * 60000;
+        const hariIniISO = new Date(now.getTime() - tzOffset).toISOString().split('T')[0];
+        document.getElementById('filter_tanggal').value = hariIniISO;
 
         async function updateDashboard() {
-            const tglPilihan = document.getElementById('filter_tanggal').value;
+            const tglPilihan = document.getElementById('filter_tanggal').value; // format: YYYY-MM-DD
+            const bulanPilihan = tglPilihan.slice(0, 7); // format: YYYY-MM
             
-            // Label Formal
             const opsiTgl = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('label_filter_kpi').innerText = new Date(tglPilihan).toLocaleDateString('id-ID', opsiTgl);
 
             const { data: lp } = await _supabase.from('rekap_notice').select('*');
-            
             let totalHariIni = 0;
             let totalFilter = 0;
             let totalDuplikatFilter = 0;
             let totalRusakFilter = 0;
             const rekapPetugas = {};
             const sebaran = {};
+            dataLaporanSebulanRaw = []; // Reset penampung bulanan
 
             lp?.forEach(row => {
                 const pake = parseInt(row.total_terpakai) || 0;
                 const rsk = parseInt(row.total_rusak) || 0;
                 const dup = parseInt(row.total_duplikat) || 0;
-
-                // --- PERBAIKAN DI SINI: Konversi created_at ke Tanggal Lokal WITA ---
                 const d = new Date(row.created_at);
-                // Tambahkan 8 jam untuk WITA jika data dari ISO String UTC
                 const tglDataLokal = new Date(d.getTime() + (8 * 60 * 60 * 1000)).toISOString().split('T')[0];
+                const bulanDataLokal = tglDataLokal.slice(0, 7);
 
-                // 1. Hitung Akumulasi Hari Ini (Real-time sesuai filter hari ini)
-                if(tglDataLokal === hariIniISO) {
-                    totalHariIni += pake;
-                }
+                // Tetap hitung real-time hari ini
+                if(tglDataLokal === hariIniISO) totalHariIni += pake;
 
-                // 2. Hitung Berdasarkan Filter Pilihan
+                // 1. FILTER UNTUK DASHBOARD UTAMA (Tetap Harian)
                 if(tglDataLokal === tglPilihan) {
                     totalFilter += pake;
                     totalRusakFilter += rsk;
                     totalDuplikatFilter += dup;
 
                     if(!rekapPetugas[row.petugas_nama]) {
-                        rekapPetugas[row.petugas_nama] = { 
-                            unit: row.unit_kerja, 
-                            pakai: 0, 
-                            rusak: 0,
-                            duplikat: 0
-                        };
+                        rekapPetugas[row.petugas_nama] = { unit: row.unit_kerja, pakai: 0, rusak: 0, duplikat: 0 };
                     }
-                    
                     rekapPetugas[row.petugas_nama].pakai += pake;
                     rekapPetugas[row.petugas_nama].rusak += rsk;
                     rekapPetugas[row.petugas_nama].duplikat += dup;
-
                     sebaran[row.lokasi_layanan] = (sebaran[row.lokasi_layanan] || 0) + pake;
                 }   
+
+                // 2. FILTER UNTUK LAPORAN CETAK (Otomatis sebulan penuh berdasarkan tglPilihan)
+                if(bulanDataLokal === bulanPilihan) {
+                    dataLaporanSebulanRaw.push(row);
+                }
             });
             
-            // Update UI
             document.getElementById('total_hari_ini').innerText = totalHariIni;
             document.getElementById('total_filter').innerText = totalFilter;
             document.getElementById('total_duplikat_filter').innerText = totalDuplikatFilter;
@@ -187,13 +220,7 @@ document.getElementById('filter_tanggal').value = hariIniISO;
 
             const tbody = document.getElementById('tabel_rekap_petugas');
             tbody.innerHTML = "";
-            dataRekapGlobal = []; // reset data rekap untuk PDF
-
-            // RENDER TABEL
             Object.entries(rekapPetugas).forEach(([nama, info]) => {
-                // LOGIKA BARU: Total Produksi sekarang adalah Terpakai + Duplikat + Rusak
-                dataRekapGlobal.push([nama, info.unit, info.pakai, info.duplikat, info.rusak, info.pakai + info.duplikat + info.rusak]);
-                
                 tbody.innerHTML += `
                     <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                         <td class="p-5 font-bold">
@@ -208,53 +235,146 @@ document.getElementById('filter_tanggal').value = hariIniISO;
                 `;
             });
 
-            if(dataRekapGlobal.length === 0) {
+            if(Object.keys(rekapPetugas).length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-500 italic uppercase text-[10px] font-bold">Data tidak ditemukan pada tanggal ini</td></tr>`;
             }
-
             updateChart(sebaran);
         }
 
-        // FUNGSI EXPORT PDF FORMAL
-        function exportLaporanPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const tgl = document.getElementById('label_filter_kpi').innerText;
+        function bukaModalLaporan() {
+            if (dataLaporanSebulanRaw.length === 0) {
+                alert("Tidak ada data laporan pada bulan ini.");
+                return;
+            }
 
-            // Header Laporan Formal
-            doc.setFontSize(16);
-            doc.text("REKAPITULASI TOTAL PEMAKAIAN NOTICE", 105, 20, { align: 'center' });
-            doc.setFontSize(10);
-            doc.text("UPPD TANAH BUMBU", 105, 27, { align: 'center' });
-            doc.line(20, 32, 190, 32); // Garis pembatas
-
-            doc.setFontSize(11);
-            doc.text(`Periode Laporan : ${tgl}`, 20, 42);
-            doc.text(`Total Terpakai    : ${document.getElementById('total_filter').innerText} Lembar`, 20, 48);
-            doc.text(`Total Duplikat    : ${document.getElementById('total_duplikat_filter').innerText} Lembar`, 20, 54);
-            doc.text(`Total Rusak       : ${document.getElementById('total_rusak_filter').innerText} Lembar`, 20, 60);
-
-            // Tabel Data menggunakan autoTable
-            doc.autoTable({
-                startY: 70,
-                head: [['NAMA PETUGAS', 'UNIT KERJA', 'TERPAKAI', 'DUPLIKAT', 'RUSAK', 'TOTAL']],
-                body: dataRekapGlobal,
-                theme: 'striped',
-                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3 },
-                columnStyles: {
-                    2: { halign: 'center' },
-                    3: { halign: 'center' },
-                    4: { halign: 'center' },
-                    5: { halign: 'center', fontStyle: 'bold' }
-                }
+            const grouped = {};
+            dataLaporanSebulanRaw.forEach(row => {
+                const nama = row.petugas_nama || 'Tidak Diketahui';
+                if (!grouped[nama]) grouped[nama] = [];
+                grouped[nama].push(row);
             });
 
-            // Footer Tanda Tangan
-            const finalY = doc.lastAutoTable.finalY + 20;
-            
+            // Urutkan rincian baris berdasarkan tanggal terlama -> terbaru
+            Object.keys(grouped).forEach(nama => {
+                grouped[nama].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            });
 
-            doc.save(`Laporan_Samsat_Tanbu_${document.getElementById('filter_tanggal').value}.pdf`);
+            const container = document.getElementById('container_halaman_laporan');
+            container.innerHTML = "";
+
+            Object.keys(grouped).forEach((nama, index) => {
+                const rows = grouped[nama];
+                const layananNama = rows[0].lokasi_layanan || "Layanan SKPD";
+                let trs = "";
+                let tPakai = 0, tDup = 0, tRusak = 0;
+
+                rows.forEach(r => {
+                    const sAwal = r.nomor_seri_awal || r.nomor_awal || '-';
+                    const sAkhir = r.nomor_seri_akhir || r.nomor_akhir || '-';
+                    const pakai = parseInt(r.total_terpakai) || 0;
+                    const dup = parseInt(r.total_duplikat) || 0;
+                    const rusak = parseInt(r.total_rusak) || 0;
+                    tPakai += pakai; tDup += dup; tRusak += rusak;
+
+                    const dInput = new Date(r.created_at);
+                    // Konversi ke WITA (+8) untuk penulisan tanggal per baris rincian harian
+                    const dLokalInput = new Date(dInput.getTime() + (8 * 60 * 60 * 1000));
+                    const tglInputStr = `${String(dLokalInput.getDate()).padStart(2,'0')}-${String(dLokalInput.getMonth()+1).padStart(2,'0')}-${dLokalInput.getFullYear()}`;
+
+                    let ket = [];
+                    if(r.keterangan_rusak) ket.push(`<b>R:</b> ${r.keterangan_rusak}`);
+                    if(r.nomor_duplikat) ket.push(`<b>D:</b> ${r.nomor_duplikat}`);
+
+                    trs += `
+                        <tr class="border-b border-slate-300">
+                            <td class="border-x border-slate-300 p-2 font-bold">${tglInputStr}</td>
+                            <td class="border-x border-slate-300 p-2 font-bold text-blue-600">${sAwal} - ${sAkhir}</td>
+                            <td class="border-x border-slate-300 p-2 font-bold text-green-700">${pakai}</td>
+                            <td class="border-x border-slate-300 p-2 font-bold text-emerald-700">${dup}</td>
+                            <td class="border-x border-slate-300 p-2 font-bold text-red-700">${rusak}</td>
+                            <td class="border-x border-slate-300 p-2 font-bold text-[10px] leading-tight text-left">${ket.join('<br>')}</td>
+                        </tr>
+                    `;
+                });
+
+                const nipPetugas = nipLookup[nama] || "Nip. ...........................";
+                
+                // Ambil info Nama Bulan & Tahun dari filter tanggal dashboard untuk judul Rekap Cetak
+                const tglPilihan = document.getElementById('filter_tanggal').value;
+                const bulanJudul = new Date(tglPilihan).toLocaleDateString('id-ID', {year:'numeric', month:'long'});
+
+                const pageHtml = `
+                    <div class="laporan-page max-w-4xl mx-auto bg-white p-8 shadow-2xl print-page" id="page_${index}">
+                        <div class="text mb-6 border-b-2 border-slate-900 pb-4 text-center text-slate-900">
+                            <h2 class="font-black text-lg uppercase leading-tight">Rekapitulasi SKPD UPPD Batulicin</h2>
+                            <p class="font-bold text-[12px] uppercase mt-1 text-blue-900">${layananNama} - Periode ${bulanJudul}</p>
+                        </div>
+
+                        <table class="w-full border-collapse border border-slate-300 text-[10px] mb-10 text-slate-900">
+                            <thead>
+                                <tr class="bg-slate-100 uppercase border-b-2 border-slate-400">
+                                    <th class="border-x border-slate-300 p-2">Tanggal</th>
+                                    <th class="border-x border-slate-300 p-2 w-32">Seri Awal - Akhir</th>
+                                    <th class="border-x border-slate-300 p-2">Terpakai</th>
+                                    <th class="border-x border-slate-300 p-2">Duplikat</th>
+                                    <th class="border-x border-slate-300 p-2">Rusak</th>
+                                    <th class="border-x border-slate-300 p-2 text-left">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                ${trs}
+                            </tbody>
+                            <tfoot class="font-black bg-slate-50 border-t-2 border-slate-400">
+                                <tr>
+                                    <td colspan="2" class="border-x border-slate-300 p-2 text-right">TOTAL BULAN INI :</td>
+                                    <td class="border-x border-slate-300 p-2 text-green-700 font-bold text-xs text-center">${tPakai}</td>
+                                    <td class="border-x border-slate-300 p-2 text-emerald-700 font-bold text-xs text-center">${tDup}</td>
+                                    <td class="border-x border-slate-300 p-2 text-red-700 font-bold text-xs text-center">${tRusak}</td>
+                                    <td class="border-x border-slate-300 p-2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <div class="mt-10 flex justify-between text-center text-[10px] font-bold uppercase px-4 text-slate-900">
+                            <div class="w-48 text-center">Mengetahui,<br>Kepala Seksi PKB & BBNKB<br><br><br><br>Adimas Fitriandi, S.T.,M.T<br>Nip. 19800813 200712 1 001</div>
+                            <div class="w-48 text-center">Batulicin, ........................... 2026<br>Petugas Operasional<br><br><br><br>${nama}<br>${nipPetugas}</div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += pageHtml;
+            });
+
+            totalPages = Object.keys(grouped).length;
+            currentPageIdx = 0;
+            updateNavText();
+            document.getElementById('modalLaporanViewer').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('page_0').scrollIntoView();
+        }
+
+        function tutupModalLaporan() {
+            document.getElementById('modalLaporanViewer').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function scrollNext() {
+            if(currentPageIdx < totalPages - 1) {
+                currentPageIdx++;
+                document.getElementById('page_' + currentPageIdx).scrollIntoView({behavior: 'smooth', block: 'start'});
+                updateNavText();
+            }
+        }
+
+        function scrollPrev() {
+            if(currentPageIdx > 0) {
+                currentPageIdx--;
+                document.getElementById('page_' + currentPageIdx).scrollIntoView({behavior: 'smooth', block: 'start'});
+                updateNavText();
+            }
+        }
+
+        function updateNavText() {
+            document.getElementById('text_halaman').innerText = `USER ${currentPageIdx + 1} / ${totalPages}`;
         }
 
         function updateChart(sebaran) {
@@ -283,7 +403,6 @@ document.getElementById('filter_tanggal').value = hariIniISO;
             });
         }
 
-        // Listener Otomatis
         _supabase.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'rekap_notice' }, () => {
             updateDashboard();
         }).subscribe();
